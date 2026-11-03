@@ -17,7 +17,6 @@ import androidx.compose.material3.CircularWavyProgressIndicator
 import androidx.compose.material3.MaterialShapes
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
-import androidx.compose.material3.WavyProgressIndicatorDefaults
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
@@ -40,6 +39,10 @@ import io.github.davidx3d.tempest.ui.celsius
 import io.github.davidx3d.tempest.ui.theme.HeatBand
 import io.github.davidx3d.tempest.ui.theme.HeatScale
 import io.github.davidx3d.tempest.ui.theme.flexFontFamily
+import kotlinx.coroutines.delay
+import kotlin.math.PI
+
+private val HERO_SIZE = 300.dp
 
 /**
  * The big temperature: a slowly turning MaterialShapes blob that morphs on every new reading,
@@ -65,6 +68,8 @@ fun TemperatureHero(
         HeatBand.Hot -> if (tick) MaterialShapes.SoftBurst else MaterialShapes.VerySunny
     }
 
+    val waveArmed = rememberWaveArmed()
+
     val pulse = remember { Animatable(1f) }
     val fast = MaterialTheme.motionScheme.fastSpatialSpec<Float>()
     LaunchedEffect(celsiusValue) {
@@ -86,7 +91,7 @@ fun TemperatureHero(
     val stroke = with(density) { Stroke(width = 10.dp.toPx(), cap = StrokeCap.Round) }
     val track = with(density) { Stroke(width = 10.dp.toPx(), cap = StrokeCap.Round) }
 
-    Box(modifier.size(300.dp), contentAlignment = Alignment.Center) {
+    Box(modifier.size(HERO_SIZE), contentAlignment = Alignment.Center) {
         CircularWavyProgressIndicator(
             progress = { heat },
             modifier = Modifier.fillMaxSize(),
@@ -94,8 +99,11 @@ fun TemperatureHero(
             trackColor = color.copy(alpha = 0.18f),
             stroke = stroke,
             trackStroke = track,
-            amplitude = { 0.35f + 0.65f * heat },
-            wavelength = (WavyProgressIndicatorDefaults.CircularWavelength * (1.3f - 0.6f * heat)),
+            // The indicator only builds its wave morph after an amplitude animation, so a custom
+            // amplitude starts at zero and springs up once the hero is on screen.
+            amplitude = { if (waveArmed) 0.35f + 0.65f * heat else 0f },
+            // Hotter readings get more, tighter waves around the ring.
+            wavelength = (2 * PI * (HERO_SIZE.value / 2) / (14 + 14 * heat)).toFloat().dp,
         )
         MorphingBlob(
             target = shape,
@@ -139,4 +147,19 @@ fun TemperatureHero(
             )
         }
     }
+}
+
+/**
+ * Wavy indicators only build their wave morph after an amplitude animation has run. A custom
+ * amplitude lambda should return 0 until this turns true, so the wave springs up instead of
+ * staying flat.
+ */
+@Composable
+fun rememberWaveArmed(): Boolean {
+    var armed by remember { mutableStateOf(false) }
+    LaunchedEffect(Unit) {
+        delay(150)
+        armed = true
+    }
+    return armed
 }

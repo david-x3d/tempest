@@ -55,6 +55,7 @@ import io.github.davidx3d.tempest.ui.components.HistoryCard
 import io.github.davidx3d.tempest.ui.components.SectionCard
 import io.github.davidx3d.tempest.ui.components.TemperatureHero
 import io.github.davidx3d.tempest.ui.components.WarningBanner
+import io.github.davidx3d.tempest.ui.components.rememberWaveArmed
 import io.github.davidx3d.tempest.ui.plus
 import io.github.davidx3d.tempest.ui.theme.HeatScale
 
@@ -151,6 +152,7 @@ private fun ZoneRow(zone: ThermalZone, warning: Float, modifier: Modifier = Modi
     val shown by animateFloatAsState(zone.celsius, MaterialTheme.motionScheme.defaultSpatialSpec(), label = "zone")
     val color by animateColorAsState(HeatScale.color(zone.celsius), label = "zoneColor")
     val heat = HeatScale.fraction(shown)
+    val waveArmed = rememberWaveArmed()
     val container = if (zone.celsius >= warning) {
         MaterialTheme.colorScheme.errorContainer
     } else {
@@ -193,7 +195,7 @@ private fun ZoneRow(zone: ThermalZone, warning: Float, modifier: Modifier = Modi
                 modifier = Modifier.fillMaxWidth().height(12.dp),
                 color = color,
                 trackColor = color.copy(alpha = 0.18f),
-                amplitude = { 0.2f + 0.8f * heat },
+                amplitude = { if (waveArmed) 0.2f + 0.8f * heat else 0f },
                 wavelength = (40 - 24 * heat).dp,
             )
         }
