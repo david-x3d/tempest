@@ -57,7 +57,7 @@
     <string name="history_collecting">Collecting readings. The curve appears after a few seconds.</string>
     <string name="history_range">Min %1$s · Max %2$s</string>
     <string name="history_threshold">Warning at %1$s</string>
-    <string name="history_note">Recorded while Tempest is open.</string>
+    <string name="history_note">Recorded while Tempest is open or background alerts are on.</string>
 
     <!-- Thermal zones screen -->
     <string name="thermal_title">Thermal zones</string>
@@ -89,7 +89,7 @@
     <!-- Settings -->
     <string name="settings_title">Settings</string>
     <string name="settings_thresholds">Warning thresholds</string>
-    <string name="settings_thresholds_body">Tempest highlights readings above these values.</string>
+    <string name="settings_thresholds_body">Tempest highlights readings above these values and alerts you when background alerts are on.</string>
     <string name="settings_threshold_battery">Battery</string>
     <string name="settings_threshold_soc">SoC</string>
     <string name="settings_root">Root access</string>
@@ -104,4 +104,73 @@
     <string name="language_de" translatable="false">Deutsch</string>
     <string name="language_fr" translatable="false">Français</string>
     <string name="language_it" translatable="false">Italiano</string>
+    <string name="unit_fahrenheit">%1$s\u00A0°F</string>
+    <string name="unit_watt">%1$s\u00A0W</string>
+    <string name="unit_mah">%1$s\u00A0mAh</string>
+    <string name="unit_mhz">%1$s\u00A0MHz</string>
+    <string name="unit_ghz">%1$s\u00A0GHz</string>
+    <string name="unit_hpa">%1$s\u00A0hPa</string>
+    <string name="unit_lux">%1$s\u00A0lx</string>
+    <string name="unit_trend_c">%1$s\u00A0°C/min</string>
+    <string name="unit_trend_f">%1$s\u00A0°F/min</string>
+    <string name="heat_cold">Cold</string>
+    <string name="heat_ultra">Ultra hot</string>
+    <string name="battery_power">Power</string>
+    <string name="battery_charge_counter">Charge left</string>
+    <string name="battery_cycles">Charge cycles</string>
+    <string name="battery_technology">Technology</string>
+    <string name="battery_time_to_full">Full in</string>
+    <string name="duration_hours_minutes">%1$d h %2$d min</string>
+    <string name="duration_minutes">%1$d min</string>
+    <string name="trend_rising">Rising %1$s</string>
+    <string name="trend_falling">Falling %1$s</string>
+    <string name="trend_steady">Steady</string>
+    <string name="history_export">Export CSV</string>
+    <string name="history_export_title">Tempest temperature history</string>
+    <string name="thermal_headroom">Thermal headroom</string>
+    <string name="thermal_headroom_body">Forecast for the next 10 seconds. At 100 % the system starts throttling.</string>
+    <string name="section_cpu">CPU cores</string>
+    <string name="cpu_core">Core %1$d</string>
+    <string name="section_cooling">Cooling devices</string>
+    <string name="cooling_level">Level %1$d of %2$d</string>
+    <string name="cooling_idle">Idle</string>
+    <string name="section_environment">Device sensors</string>
+    <string name="sensor_ambient_temperature">Ambient temperature</string>
+    <string name="sensor_humidity">Humidity</string>
+    <string name="sensor_pressure">Air pressure</string>
+    <string name="sensor_light">Light</string>
+    <string name="environment_none">This phone has no environmental sensors.</string>
+    <string name="settings_levels">Temperature levels</string>
+    <string name="settings_levels_body">Decide what counts as cold, cool, warm, hot and ultra hot. Colours, shapes and waves follow these levels.</string>
+    <string name="level_cold_below">Cold below</string>
+    <string name="level_warm_from">Warm from</string>
+    <string name="level_hot_from">Hot from</string>
+    <string name="level_ultra_from">Ultra hot from</string>
+    <string name="settings_unit">Temperature unit</string>
+    <string name="unit_option_celsius">Celsius (°C)</string>
+    <string name="unit_option_fahrenheit">Fahrenheit (°F)</string>
+    <string name="settings_alerts">Background alerts</string>
+    <string name="settings_alerts_body">Keeps watching in the background and sends a big alert as soon as the battery or SoC crosses its warning threshold.</string>
+    <string name="settings_alerts_blocked">Notifications are blocked. Allow them in the system settings.</string>
+    <string name="settings_fullscreen">Full-screen alerts</string>
+    <string name="settings_fullscreen_body">Lets an alert cover the whole screen, even on the lock screen.</string>
+    <string name="settings_fullscreen_allow">Allow</string>
+    <string name="settings_fullscreen_allowed">Allowed</string>
+    <string name="channel_monitor">Monitoring</string>
+    <string name="channel_monitor_desc">Ongoing notification while background alerts are on.</string>
+    <string name="channel_alerts">Temperature alerts</string>
+    <string name="channel_alerts_desc">Big alerts when the battery or SoC gets too hot.</string>
+    <string name="notif_monitor_title">Tempest is watching</string>
+    <string name="notif_monitor_text">Battery %1$s</string>
+    <string name="notif_monitor_text_soc">Battery %1$s · SoC %2$s</string>
+    <string name="alert_battery_title">Battery too hot!</string>
+    <string name="alert_soc_title">SoC too hot!</string>
+    <string name="alert_body">Above your limit of %1$s</string>
+    <string name="alert_dismiss">Got it</string>
+    <string name="alert_open">Open Tempest</string>
+    <string name="tile_label">Battery temp</string>
+    <plurals name="sensor_count">
+        <item quantity="one">This phone has %d sensor</item>
+        <item quantity="other">This phone has %d sensors</item>
+    </plurals>
 </resources>
