@@ -6,6 +6,20 @@ data class ThermalZone(
     val celsius: Float,
 )
 
+/** A fan, a CPU frequency limiter, a charger throttle... State 0 means "not throttling". */
+data class CoolingDevice(
+    val index: Int,
+    val type: String,
+    val current: Int,
+    val max: Int,
+)
+
+data class CpuCore(
+    val index: Int,
+    val currentKhz: Long,
+    val maxKhz: Long?,
+)
+
 enum class RootState { Off, Checking, Granted, Denied }
 
 /** Mirrors PowerManager.THERMAL_STATUS_*. */
@@ -13,6 +27,10 @@ enum class ThermalStatus { None, Light, Moderate, Severe, Critical, Emergency, S
 
 data class ThermalReading(
     val zones: List<ThermalZone> = emptyList(),
+    val coolingDevices: List<CoolingDevice> = emptyList(),
+    val cpuCores: List<CpuCore> = emptyList(),
+    /** PowerManager forecast for the next 10 s; 1.0 means throttling starts. Null if unsupported. */
+    val headroom: Float? = null,
     val root: RootState = RootState.Off,
     val loaded: Boolean = false,
 ) {
