@@ -18,6 +18,14 @@ import androidx.compose.material.icons.rounded.ElectricalServices
 import androidx.compose.material.icons.rounded.Favorite
 import androidx.compose.material.icons.rounded.Power
 import androidx.compose.material.icons.rounded.Speed
+import androidx.compose.material.icons.rounded.Autorenew
+import androidx.compose.material.icons.rounded.BatteryStd
+import androidx.compose.material.icons.rounded.ElectricBolt
+import androidx.compose.material.icons.rounded.Science
+import androidx.compose.material.icons.rounded.Timer
+import androidx.compose.foundation.layout.Spacer
+import androidx.compose.ui.graphics.vector.ImageVector
+import androidx.graphics.shapes.RoundedPolygon
 import androidx.compose.material3.LinearWavyProgressIndicator
 import androidx.compose.material3.LoadingIndicator
 import androidx.compose.material3.MaterialShapes
@@ -86,6 +94,7 @@ fun BatteryScreen(
                 celsiusValue = snapshot.temperatureCelsius,
                 label = stringResource(R.string.battery_title),
                 modifier = Modifier.padding(vertical = 8.dp),
+                trendPerMinute = state.trendPerMinute,
             )
         }
         item {
@@ -95,7 +104,7 @@ fun BatteryScreen(
         }
         item { LevelCard(snapshot) }
         item { StatsGrid(snapshot) }
-        item { HistoryCard(state.history, state.threshold) }
+        item { HistoryCard(state.history, state.threshold, csv = viewModel::exportCsv) }
     }
 }
 
@@ -120,61 +129,79 @@ private fun LevelCard(snapshot: BatterySnapshot) {
     }
 }
 
+private data class Stat(
+    val label: String,
+    val value: String,
+    val icon: ImageVector,
+    val shape: RoundedPolygon,
+    val tone: Int,
+)
+
+/** Every battery reading the system exposes, two per row; values the device lacks are skipped. */
 @Composable
 private fun StatsGrid(snapshot: BatterySnapshot) {
     val locale = currentLocale()
     val unavailable = stringResource(R.string.value_unavailable)
-    val voltage = snapshot.voltageVolts?.let { formatUnit(R.string.unit_volt, it, 2) } ?: unavailable
-    val current = snapshot.currentMilliamps?.let {
-        stringResource(R.string.unit_milliampere, formatNumber(it.toFloat(), locale, 0))
-    } ?: unavailable
+    val stats = buildList {
+        add(Stat(stringResource(R.string.battery_voltage), snapshot.voltageVolts?.let { formatUnit(R.string.unit_volt, it, 2) } ?: unavailable, Icons.Rounded.Bolt, MaterialShapes.Cookie4Sided, 0))
+        add(
+            Stat(
+                stringResource(R.string.battery_current),
+                snapshot.currentMilliamps?.let { stringResource(R.string.unit_milliampere, formatNumber(it.toFloat(), locale, 0)) } ?: unavailable,
+                Icons.Rounded.Speed, MaterialShapes.Pill, 1,
+            ),
+        )
+        snapshot.powerWatts?.let { add(Stat(stringResource(R.string.battery_power), formatUnit(R.string.unit_watt, it, 2), Icons.Rounded.ElectricBolt, MaterialShapes.Sunny, 2)) }
+        snapshot.chargeCounterMah?.let {
+            add(Stat(stringResource(R.string.battery_charge_counter), stringResource(R.string.unit_mah, formatNumber(it.toFloat(), locale, 0)), Icons.Rounded.BatteryStd, MaterialShapes.Cookie7Sided, 0))
+        }
+        add(Stat(stringResource(R.string.battery_status), stringResource(snapshot.status.label()), Icons.Rounded.BatteryChargingFull, MaterialShapes.Cookie9Sided, 2))
+        add(
+            Stat(
+                stringResource(R.string.battery_source),
+                stringResource(snapshot.source.label()),
+                if (snapshot.source == PowerSource.Battery) Icons.Rounded.Power else Icons.Rounded.ElectricalServices,
+                MaterialShapes.Cookie6Sided, 0,
+            ),
+        )
+        snapshot.timeToFullMillis?.let { add(Stat(stringResource(R.string.battery_time_to_full), duration(it), Icons.Rounded.Timer, MaterialShapes.Clover8Leaf, 1)) }
+        add(Stat(stringResource(R.string.battery_health), stringResource(snapshot.health.label()), Icons.Rounded.Favorite, MaterialShapes.Heart, 1))
+        snapshot.cycleCount?.let { add(Stat(stringResource(R.string.battery_cycles), formatNumber(it.toFloat(), locale, 0), Icons.Rounded.Autorenew, MaterialShapes.Flower, 2)) }
+        snapshot.technology?.let { add(Stat(stringResource(R.string.battery_technology), it, Icons.Rounded.Science, MaterialShapes.Gem, 0)) }
+    }
 
     Column(verticalArrangement = Arrangement.spacedBy(12.dp)) {
-        Row(horizontalArrangement = Arrangement.spacedBy(12.dp)) {
-            StatTile(
-                label = stringResource(R.string.battery_voltage),
-                value = voltage,
-                icon = Icons.Rounded.Bolt,
-                shape = MaterialShapes.Cookie4Sided,
-                modifier = Modifier.weight(1f),
-            )
-            StatTile(
-                label = stringResource(R.string.battery_current),
-                value = current,
-                icon = Icons.Rounded.Speed,
-                shape = MaterialShapes.Pill,
-                modifier = Modifier.weight(1f),
-                accent = MaterialTheme.colorScheme.tertiaryContainer,
-                onAccent = MaterialTheme.colorScheme.onTertiaryContainer,
-            )
+        stats.chunked(2).forEach { row ->
+            Row(horizontalArrangement = Arrangement.spacedBy(12.dp)) {
+                row.forEach { stat ->
+                    val (accent, onAccent) = when (stat.tone) {
+                        1 -> MaterialTheme.colorScheme.tertiaryContainer to MaterialTheme.colorScheme.onTertiaryContainer
+                        2 -> MaterialTheme.colorScheme.primaryContainer to MaterialTheme.colorScheme.onPrimaryContainer
+                        else -> MaterialTheme.colorScheme.secondaryContainer to MaterialTheme.colorScheme.onSecondaryContainer
+                    }
+                    StatTile(
+                        label = stat.label,
+                        value = stat.value,
+                        icon = stat.icon,
+                        shape = stat.shape,
+                        modifier = Modifier.weight(1f),
+                        accent = accent,
+                        onAccent = onAccent,
+                    )
+                }
+                if (row.size == 1) Spacer(Modifier.weight(1f))
+            }
         }
-        Row(horizontalArrangement = Arrangement.spacedBy(12.dp)) {
-            StatTile(
-                label = stringResource(R.string.battery_status),
-                value = stringResource(snapshot.status.label()),
-                icon = Icons.Rounded.BatteryChargingFull,
-                shape = MaterialShapes.Sunny,
-                modifier = Modifier.weight(1f),
-                accent = MaterialTheme.colorScheme.primaryContainer,
-                onAccent = MaterialTheme.colorScheme.onPrimaryContainer,
-            )
-            StatTile(
-                label = stringResource(R.string.battery_source),
-                value = stringResource(snapshot.source.label()),
-                icon = if (snapshot.source == PowerSource.Battery) Icons.Rounded.Power else Icons.Rounded.ElectricalServices,
-                shape = MaterialShapes.Cookie6Sided,
-                modifier = Modifier.weight(1f),
-            )
-        }
-        StatTile(
-            label = stringResource(R.string.battery_health),
-            value = stringResource(snapshot.health.label()),
-            icon = Icons.Rounded.Favorite,
-            shape = MaterialShapes.Clover4Leaf,
-            modifier = Modifier.fillMaxWidth(),
-            accent = MaterialTheme.colorScheme.tertiaryContainer,
-            onAccent = MaterialTheme.colorScheme.onTertiaryContainer,
-        )
+    }
+}
+
+@Composable
+private fun duration(millis: Long): String {
+    val minutes = (millis / 60_000).toInt()
+    return if (minutes >= 60) {
+        stringResource(R.string.duration_hours_minutes, minutes / 60, minutes % 60)
+    } else {
+        stringResource(R.string.duration_minutes, minutes)
     }
 }
 

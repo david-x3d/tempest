@@ -35,9 +35,17 @@ import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import io.github.davidx3d.tempest.R
+import io.github.davidx3d.tempest.ui.LocalFahrenheit
 import io.github.davidx3d.tempest.ui.celsius
+import io.github.davidx3d.tempest.ui.formatUnit
+import io.github.davidx3d.tempest.ui.temperatureDelta
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.automirrored.rounded.TrendingDown
+import androidx.compose.material.icons.automirrored.rounded.TrendingFlat
+import androidx.compose.material.icons.automirrored.rounded.TrendingUp
+import androidx.compose.material3.Icon
 import io.github.davidx3d.tempest.ui.theme.HeatBand
-import io.github.davidx3d.tempest.ui.theme.HeatScale
+import io.github.davidx3d.tempest.ui.theme.LocalHeatScale
 import io.github.davidx3d.tempest.ui.theme.flexFontFamily
 import kotlinx.coroutines.delay
 import kotlin.math.PI
@@ -53,19 +61,23 @@ fun TemperatureHero(
     celsiusValue: Float,
     label: String,
     modifier: Modifier = Modifier,
+    trendPerMinute: Float? = null,
 ) {
+    val scale = LocalHeatScale.current
     val spatial = MaterialTheme.motionScheme.defaultSpatialSpec<Float>()
     val shown by animateFloatAsState(celsiusValue, spatial, label = "temperature")
-    val heat = HeatScale.fraction(shown)
-    val band = HeatScale.band(celsiusValue)
-    val color by animateColorAsState(HeatScale.color(celsiusValue), label = "heatColor")
+    val heat = scale.fraction(shown)
+    val band = scale.band(celsiusValue)
+    val color by animateColorAsState(scale.color(celsiusValue), label = "heatColor")
 
     // Each new reading flips to the band's alternate shape, so the blob morphs on every change.
     var tick by remember { mutableStateOf(true) }
     val shape = when (band) {
+        HeatBand.Cold -> if (tick) MaterialShapes.Flower else MaterialShapes.Clover8Leaf
         HeatBand.Cool -> if (tick) MaterialShapes.Cookie12Sided else MaterialShapes.Cookie9Sided
         HeatBand.Warm -> if (tick) MaterialShapes.Sunny else MaterialShapes.Cookie7Sided
         HeatBand.Hot -> if (tick) MaterialShapes.SoftBurst else MaterialShapes.VerySunny
+        HeatBand.Ultra -> if (tick) MaterialShapes.Burst else MaterialShapes.Boom
     }
 
     val waveArmed = rememberWaveArmed()
@@ -137,14 +149,17 @@ fun TemperatureHero(
             Text(
                 stringResource(
                     when (band) {
+                        HeatBand.Cold -> R.string.heat_cold
                         HeatBand.Cool -> R.string.heat_cool
                         HeatBand.Warm -> R.string.heat_warm
                         HeatBand.Hot -> R.string.heat_hot
+                        HeatBand.Ultra -> R.string.heat_ultra
                     },
                 ),
                 style = MaterialTheme.typography.titleMedium,
                 color = color,
             )
+            if (trendPerMinute != null) TrendLabel(trendPerMinute)
         }
     }
 }
@@ -163,3 +178,30 @@ fun rememberWaveArmed(): Boolean {
     }
     return armed
 }
+
+/** "Rising 0.8 °C/min" with an arrow; anything within ±0.1 °C/min counts as steady. */
+@Composable
+fun TrendLabel(perMinute: Float, modifier: Modifier = Modifier) {
+    val delta = temperatureDelta(perMinute)
+    val unit = if (LocalFahrenheit.current) R.string.unit_trend_f else R.string.unit_trend_c
+    val amount = formatUnit(unit, kotlin.math.abs(delta), 1)
+    val (icon, text) = when {
+        perMinute > STEADY -> Icons.AutoMirrored.Rounded.TrendingUp to stringResource(R.string.trend_rising, amount)
+        perMinute < -STEADY -> Icons.AutoMirrored.Rounded.TrendingDown to stringResource(R.string.trend_falling, amount)
+        else -> Icons.AutoMirrored.Rounded.TrendingFlat to stringResource(R.string.trend_steady)
+    }
+    androidx.compose.foundation.layout.Row(
+        modifier.padding(top = 4.dp),
+        verticalAlignment = Alignment.CenterVertically,
+    ) {
+        Icon(icon, contentDescription = null, modifier = Modifier.size(18.dp), tint = MaterialTheme.colorScheme.onSurfaceVariant)
+        Text(
+            text,
+            style = MaterialTheme.typography.labelLarge,
+            color = MaterialTheme.colorScheme.onSurfaceVariant,
+            modifier = Modifier.padding(start = 4.dp),
+        )
+    }
+}
+
+private const val STEADY = 0.1f

@@ -8,6 +8,7 @@ import androidx.lifecycle.viewModelScope
 import androidx.lifecycle.viewmodel.initializer
 import androidx.lifecycle.viewmodel.viewModelFactory
 import io.github.davidx3d.tempest.TempestApp
+import io.github.davidx3d.tempest.data.settings.HeatLevels
 import io.github.davidx3d.tempest.data.settings.Settings
 import io.github.davidx3d.tempest.data.settings.SettingsRepository
 import io.github.davidx3d.tempest.data.thermal.RootState
@@ -47,6 +48,12 @@ class SettingsViewModel(
     fun setSocThreshold(value: Float) = viewModelScope.launch { repository.setSocThreshold(value) }
 
     fun setUseRoot(value: Boolean) = viewModelScope.launch { repository.setUseRoot(value) }
+
+    fun setFahrenheit(value: Boolean) = viewModelScope.launch { repository.setFahrenheit(value) }
+
+    fun setAlertsEnabled(value: Boolean) = viewModelScope.launch { repository.setAlertsEnabled(value) }
+
+    fun setLevels(value: HeatLevels) = viewModelScope.launch { repository.setLevels(value) }
 
     /** Recreates the activity in the new language; Android 13+ also shows it in system settings. */
     fun setLanguage(value: AppLanguage) {

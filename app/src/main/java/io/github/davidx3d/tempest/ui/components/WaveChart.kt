@@ -21,7 +21,7 @@ import androidx.compose.ui.graphics.StrokeJoin
 import androidx.compose.ui.graphics.drawscope.Stroke
 import androidx.compose.ui.unit.dp
 import io.github.davidx3d.tempest.data.history.Sample
-import io.github.davidx3d.tempest.ui.theme.HeatScale
+import io.github.davidx3d.tempest.ui.theme.LocalHeatScale
 import kotlin.math.PI
 import kotlin.math.max
 import kotlin.math.min
@@ -45,6 +45,7 @@ fun WaveChart(
         label = "phase",
     )
     val thresholdColor = MaterialTheme.colorScheme.error
+    val scale = LocalHeatScale.current
     val gridColor = MaterialTheme.colorScheme.outlineVariant
 
     Canvas(modifier) {
@@ -93,7 +94,7 @@ fun WaveChart(
             val f = ((t - a.timeMillis) / max(b.timeMillis - a.timeMillis, 1L).toFloat()).coerceIn(0f, 1f)
             val celsius = a.celsius + (b.celsius - a.celsius) * f
 
-            val heat = HeatScale.fraction(celsius)
+            val heat = scale.fraction(celsius)
             val amplitude = 1.dp.toPx() + maxAmp * heat
             accumulated += (2 * PI).toFloat() * step / baseWavelength * (0.6f + 2.4f * heat)
             val y = yOf(celsius) + sin(accumulated - phase) * amplitude
@@ -103,7 +104,7 @@ fun WaveChart(
         }
 
         val brush = Brush.verticalGradient(
-            colorStops = HeatScale.gradientStops(
+            colorStops = scale.gradientStops(
                 low = low - (high - low) * (pad / plotHeight),
                 high = high + (high - low) * (pad / plotHeight),
             ),
@@ -119,7 +120,7 @@ fun WaveChart(
 
         // Live dot at the newest value
         val lastY = yOf(values.last())
-        val dotColor = HeatScale.color(values.last())
+        val dotColor = scale.color(values.last())
         drawCircle(dotColor.copy(alpha = 0.25f), radius = 10.dp.toPx(), center = Offset(size.width - 2.dp.toPx(), lastY))
         drawCircle(dotColor, radius = 5.dp.toPx(), center = Offset(size.width - 2.dp.toPx(), lastY))
         drawCircle(Color.White, radius = 2.dp.toPx(), center = Offset(size.width - 2.dp.toPx(), lastY))

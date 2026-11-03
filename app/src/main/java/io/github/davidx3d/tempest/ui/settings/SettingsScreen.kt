@@ -40,12 +40,38 @@ import androidx.compose.ui.unit.dp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.lifecycle.viewmodel.compose.viewModel
 import io.github.davidx3d.tempest.R
+import io.github.davidx3d.tempest.data.settings.HeatLevels
 import io.github.davidx3d.tempest.data.settings.Settings
+import io.github.davidx3d.tempest.alerts.MonitorService
+import io.github.davidx3d.tempest.ui.theme.HeatScale
+import android.Manifest
+import android.app.NotificationManager
+import android.content.Context
+import android.content.Intent
+import android.net.Uri
+import android.os.Build
+import android.provider.Settings as AndroidSettings
+import androidx.activity.compose.rememberLauncherForActivityResult
+import androidx.activity.result.contract.ActivityResultContracts
+import androidx.compose.foundation.background
+import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.material3.FilledTonalButton
+import androidx.compose.material3.SegmentedButton
+import androidx.compose.material3.SegmentedButtonDefaults
+import androidx.compose.material3.SingleChoiceSegmentedButtonRow
+import androidx.compose.runtime.CompositionLocalProvider
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.ui.draw.clip
+import androidx.compose.ui.graphics.Brush
+import androidx.core.app.NotificationManagerCompat
+import androidx.lifecycle.compose.LifecycleResumeEffect
 import io.github.davidx3d.tempest.data.thermal.RootState
 import io.github.davidx3d.tempest.ui.celsius
 import io.github.davidx3d.tempest.ui.components.SectionCard
 import io.github.davidx3d.tempest.ui.plus
-import io.github.davidx3d.tempest.ui.theme.HeatScale
+import io.github.davidx3d.tempest.ui.theme.LocalHeatScale
 import kotlin.math.roundToInt
 
 @Composable
@@ -63,6 +89,8 @@ fun SettingsScreen(
         item {
             Text(stringResource(R.string.settings_title), style = MaterialTheme.typography.displaySmall)
         }
+        item { UnitCard(state.settings.fahrenheit, viewModel::setFahrenheit) }
+        item { LevelsCard(state.settings.levels, viewModel::setLevels) }
         item {
             SectionCard(
                 title = stringResource(R.string.settings_thresholds),
@@ -82,6 +110,7 @@ fun SettingsScreen(
                 )
             }
         }
+        item { AlertsCard(state.settings.alertsEnabled, viewModel::setAlertsEnabled) }
         item { RootCard(state.settings.useRoot, state.root, viewModel::setUseRoot) }
         item { LanguageCard(state.language, viewModel::setLanguage) }
         item { AboutCard() }
@@ -97,7 +126,7 @@ private fun ThresholdSlider(
 ) {
     val haptics = LocalHapticFeedback.current
     var dragged by remember(value) { mutableFloatStateOf(value) }
-    val color = HeatScale.color(dragged)
+    val color = LocalHeatScale.current.color(dragged)
 
     Column {
         Row(verticalAlignment = Alignment.CenterVertically) {
@@ -126,6 +155,159 @@ private fun ThresholdSlider(
         )
     }
 }
+
+@Composable
+private fun UnitCard(fahrenheit: Boolean, onChange: (Boolean) -> Unit) {
+    val haptics = LocalHapticFeedback.current
+    SectionCard(title = stringResource(R.string.settings_unit)) {
+        SingleChoiceSegmentedButtonRow(Modifier.fillMaxWidth()) {
+            listOf(false to R.string.unit_option_celsius, true to R.string.unit_option_fahrenheit).forEachIndexed { i, (value, label) ->
+                SegmentedButton(
+                    selected = fahrenheit == value,
+                    onClick = {
+                        haptics.performHapticFeedback(HapticFeedbackType.SegmentTick)
+                        onChange(value)
+                    },
+                    shape = SegmentedButtonDefaults.itemShape(i, 2),
+                ) { Text(stringResource(label)) }
+            }
+        }
+    }
+}
+
+/** Four sliders for the boundaries between the five heat levels, with a live colour preview. */
+@Composable
+private fun LevelsCard(levels: HeatLevels, onCommit: (HeatLevels) -> Unit) {
+    var draft by remember(levels) { mutableStateOf(levels) }
+    val preview = remember(draft) { HeatScale(draft.sanitized()) }
+    val range = HeatLevels.RANGE
+    SectionCard(
+        title = stringResource(R.string.settings_levels),
+        subtitle = stringResource(R.string.settings_levels_body),
+    ) {
+        Box(
+            Modifier
+                .fillMaxWidth()
+                .height(28.dp)
+                .clip(RoundedCornerShape(percent = 50))
+                .background(
+                    Brush.horizontalGradient(
+                        (0..20).map { i -> preview.color(range.start + (range.endInclusive - range.start) * i / 20f) },
+                    ),
+                ),
+        )
+        CompositionLocalProvider(LocalHeatScale provides preview) {
+            ThresholdSlider(stringResource(R.string.level_cold_below), draft.coldBelow, range, onCommit = {
+                draft = draft.copy(coldBelow = it).sanitized(); onCommit(draft)
+            })
+            ThresholdSlider(stringResource(R.string.level_warm_from), draft.warmFrom, range, onCommit = {
+                draft = draft.copy(warmFrom = it).sanitized(); onCommit(draft)
+            })
+            ThresholdSlider(stringResource(R.string.level_hot_from), draft.hotFrom, range, onCommit = {
+                draft = draft.copy(hotFrom = it).sanitized(); onCommit(draft)
+            })
+            ThresholdSlider(stringResource(R.string.level_ultra_from), draft.ultraFrom, range, onCommit = {
+                draft = draft.copy(ultraFrom = it).sanitized(); onCommit(draft)
+            })
+        }
+    }
+}
+
+/**
+ * Background alerts need the notification permission on Android 13+. Full-screen alerts need a
+ * separate grant on Android 14+, which only the system settings page can give.
+ */
+@Composable
+private fun AlertsCard(enabled: Boolean, onChange: (Boolean) -> Unit) {
+    val context = LocalContext.current
+    val haptics = LocalHapticFeedback.current
+    var notificationsAllowed by remember { mutableStateOf(NotificationManagerCompat.from(context).areNotificationsEnabled()) }
+    var fullScreenAllowed by remember { mutableStateOf(canUseFullScreen(context)) }
+    LifecycleResumeEffect(Unit) {
+        notificationsAllowed = NotificationManagerCompat.from(context).areNotificationsEnabled()
+        fullScreenAllowed = canUseFullScreen(context)
+        onPauseOrDispose {}
+    }
+
+    fun turnOn() {
+        onChange(true)
+        MonitorService.start(context)
+    }
+
+    val permission = rememberLauncherForActivityResult(ActivityResultContracts.RequestPermission()) { granted ->
+        notificationsAllowed = granted
+        if (granted) turnOn()
+    }
+
+    SectionCard {
+        Row(
+            modifier = Modifier
+                .fillMaxWidth()
+                .toggleable(value = enabled, role = Role.Switch) { on ->
+                    haptics.performHapticFeedback(if (on) HapticFeedbackType.ToggleOn else HapticFeedbackType.ToggleOff)
+                    when {
+                        !on -> {
+                            onChange(false)
+                            MonitorService.stop(context)
+                        }
+                        Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU && !notificationsAllowed ->
+                            permission.launch(Manifest.permission.POST_NOTIFICATIONS)
+                        else -> turnOn()
+                    }
+                },
+            verticalAlignment = Alignment.CenterVertically,
+        ) {
+            Column(Modifier.weight(1f)) {
+                Text(stringResource(R.string.settings_alerts), style = MaterialTheme.typography.titleLarge)
+                Text(
+                    stringResource(R.string.settings_alerts_body),
+                    style = MaterialTheme.typography.bodyMedium,
+                    color = MaterialTheme.colorScheme.onSurfaceVariant,
+                )
+                if (!notificationsAllowed) {
+                    Text(
+                        stringResource(R.string.settings_alerts_blocked),
+                        style = MaterialTheme.typography.labelLarge,
+                        color = MaterialTheme.colorScheme.error,
+                        modifier = Modifier.padding(top = 4.dp),
+                    )
+                }
+            }
+            Spacer(Modifier.width(16.dp))
+            Switch(checked = enabled && notificationsAllowed, onCheckedChange = null)
+        }
+        if (enabled && Build.VERSION.SDK_INT >= Build.VERSION_CODES.UPSIDE_DOWN_CAKE) {
+            Row(verticalAlignment = Alignment.CenterVertically) {
+                Column(Modifier.weight(1f)) {
+                    Text(stringResource(R.string.settings_fullscreen), style = MaterialTheme.typography.titleMedium)
+                    Text(
+                        stringResource(R.string.settings_fullscreen_body),
+                        style = MaterialTheme.typography.bodySmall,
+                        color = MaterialTheme.colorScheme.onSurfaceVariant,
+                    )
+                }
+                Spacer(Modifier.width(12.dp))
+                if (fullScreenAllowed) {
+                    Text(
+                        stringResource(R.string.settings_fullscreen_allowed),
+                        style = MaterialTheme.typography.labelLarge,
+                        color = MaterialTheme.colorScheme.primary,
+                    )
+                } else {
+                    FilledTonalButton(onClick = {
+                        context.startActivity(
+                            Intent(AndroidSettings.ACTION_MANAGE_APP_USE_FULL_SCREEN_INTENT, Uri.parse("package:${context.packageName}")),
+                        )
+                    }) { Text(stringResource(R.string.settings_fullscreen_allow)) }
+                }
+            }
+        }
+    }
+}
+
+private fun canUseFullScreen(context: Context): Boolean =
+    Build.VERSION.SDK_INT < Build.VERSION_CODES.UPSIDE_DOWN_CAKE ||
+        context.getSystemService(NotificationManager::class.java).canUseFullScreenIntent()
 
 @Composable
 private fun RootCard(enabled: Boolean, root: RootState, onChange: (Boolean) -> Unit) {
