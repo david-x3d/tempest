@@ -34,8 +34,17 @@ umso stärker schwingt, je heißer es wird. Gebaut mit Jetpack Compose und Mater
   `su -c` gelesen; ohne Root zeigt Tempest die Zonen, die Apps lesen dürfen
 - **Verlauf über 30 Minuten** für Akku und heißeste SoC-Zone als animierte Sinuswelle, deren
   Amplitude und Frequenz mit der Temperatur steigen
+- **Mehr Messwerte**: Leistung, Restladung, Ladezyklen (ab Android 14), Akkutechnologie,
+  Zeit bis voll sowie ein Trend in °C pro Minute
+- **Mehr Sensoren**: thermischer Spielraum, CPU-Takt je Kern, Kühlgeräte und die
+  Umgebungssensoren des Handys (Umgebungstemperatur, Luftfeuchtigkeit, Luftdruck, Licht)
+- **Eigene Temperaturstufen**: Lege fest, was kalt, kühl, warm, heiß und ultraheiß ist;
+  Farben, Formen und Wellen richten sich danach
 - **Einstellbare Warnschwellen** (Standard: 40 °C Akku, 45 °C SoC) mit Hinweis und
   haptischem Feedback beim Überschreiten
+- **Große Hintergrund-Alarme**: optionale Überwachung mit Heads-up-Benachrichtigung in
+  riesiger Schrift und, wenn erlaubt, Vollbild-Alarm auch auf dem Sperrbildschirm
+- **Schnelleinstellungs-Kachel**, **°C oder °F** und **CSV-Export** des Verlaufs
 - **Material 3 Expressive**: `MaterialShapes` mit Shape-Morphing (Cookie, Sunny, Pill, Burst),
   `CircularWavyProgressIndicator` und `LinearWavyProgressIndicator`, Federanimationen mit
   `MotionScheme.expressive()`, variable Schrift Roboto Flex, die mit der Hitze kräftiger wird,

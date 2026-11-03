@@ -34,8 +34,17 @@ Built with Jetpack Compose and Material 3 Expressive.
   without root Tempest lists the zones the system lets apps read
 - **30-minute history** for battery and the hottest SoC zone, drawn as an animated sine wave
   whose amplitude and frequency rise with the temperature
+- **More readings**: power, remaining charge, charge cycles (Android 14+), battery technology,
+  time to full, plus a rising/falling trend in °C per minute
+- **More sensors**: thermal headroom forecast, CPU core clocks, cooling devices and the phone's
+  environment sensors (ambient temperature, humidity, air pressure, light)
+- **Your own heat levels**: decide what counts as cold, cool, warm, hot and ultra hot; colours,
+  shapes and waves follow them
 - **Warning thresholds** you can adjust (defaults: 40 °C battery, 45 °C SoC) with a banner and
   haptic feedback when they are crossed
+- **Big background alerts**: optional monitoring that posts a heads-up notification with the
+  temperature in huge type and, if allowed, a full-screen alert over the lock screen
+- **Quick Settings tile**, **°C or °F**, and **CSV export** of the history
 - **Material 3 Expressive**: `MaterialShapes` with shape morphing (Cookie, Sunny, Pill, Burst),
   `CircularWavyProgressIndicator` and `LinearWavyProgressIndicator`, `MotionScheme.expressive()`
   springs, variable Roboto Flex type that gets heavier as it heats up, cool-blue to hot-red
