@@ -13,9 +13,10 @@ object HeatScale {
     private const val HOT_FROM = 42f
 
     private val stops = listOf(
-        15f to Color(0xFF2F7BFF),
-        26f to Color(0xFF22B5D6),
-        33f to Color(0xFFFFB02E),
+        15f to Color(0xFF3D6BFF),
+        25f to Color(0xFF1E9BF0),
+        31f to Color(0xFF14B8C8),
+        34f to Color(0xFFFFA726),
         40f to Color(0xFFFF7A1F),
         48f to Color(0xFFE5392B),
         65f to Color(0xFFB0102A),
