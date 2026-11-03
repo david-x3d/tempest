@@ -7,6 +7,7 @@ import androidx.compose.animation.fadeOut
 import androidx.compose.animation.scaleIn
 import androidx.compose.animation.scaleOut
 import androidx.compose.animation.togetherWith
+import androidx.compose.foundation.text.TextAutoSize
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.rounded.BatteryFull
 import androidx.compose.material.icons.rounded.DeviceThermostat
@@ -28,6 +29,7 @@ import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.hapticfeedback.HapticFeedbackType
 import androidx.compose.ui.platform.LocalHapticFeedback
 import androidx.compose.ui.res.stringResource
+import androidx.compose.ui.unit.sp
 import io.github.davidx3d.tempest.R
 import io.github.davidx3d.tempest.ui.battery.BatteryScreen
 import io.github.davidx3d.tempest.ui.cpu.CpuScreen
@@ -60,7 +62,19 @@ fun TempestRoot() {
                             current = destination
                         },
                         icon = { Icon(destination.icon, contentDescription = null) },
-                        label = { Text(stringResource(destination.label)) },
+                        // Five tabs leave little room: long labels like "Einstellungen" shrink
+                        // to fit on one line instead of wrapping.
+                        label = {
+                            Text(
+                                stringResource(destination.label),
+                                maxLines = 1,
+                                softWrap = false,
+                                autoSize = TextAutoSize.StepBased(
+                                    minFontSize = 9.sp,
+                                    maxFontSize = MaterialTheme.typography.labelMedium.fontSize,
+                                ),
+                            )
+                        },
                     )
                 }
             }
