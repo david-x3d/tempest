@@ -47,6 +47,9 @@ data class Settings(
     val batteryThreshold: Float = DEFAULT_BATTERY_THRESHOLD,
     val socThreshold: Float = DEFAULT_SOC_THRESHOLD,
     val useRoot: Boolean = false,
+    val useShizuku: Boolean = false,
+    /** Looks unknown chip codes up on Wikipedia. The only feature that uses the internet. */
+    val onlineLookup: Boolean = false,
     val levels: HeatLevels = HeatLevels(),
     val alertsEnabled: Boolean = false,
     val fahrenheit: Boolean = false,
@@ -76,6 +79,8 @@ class SettingsRepository(context: Context, scope: CoroutineScope) {
                 batteryThreshold = prefs[BATTERY_THRESHOLD] ?: Settings.DEFAULT_BATTERY_THRESHOLD,
                 socThreshold = prefs[SOC_THRESHOLD] ?: Settings.DEFAULT_SOC_THRESHOLD,
                 useRoot = prefs[USE_ROOT] ?: false,
+                useShizuku = prefs[USE_SHIZUKU] ?: false,
+                onlineLookup = prefs[ONLINE_LOOKUP] ?: false,
                 levels = HeatLevels(
                     coldBelow = prefs[COLD_BELOW] ?: defaults.coldBelow,
                     warmFrom = prefs[WARM_FROM] ?: defaults.warmFrom,
@@ -95,6 +100,10 @@ class SettingsRepository(context: Context, scope: CoroutineScope) {
 
     suspend fun setUseRoot(value: Boolean) = store.edit { it[USE_ROOT] = value }
 
+    suspend fun setUseShizuku(value: Boolean) = store.edit { it[USE_SHIZUKU] = value }
+
+    suspend fun setOnlineLookup(value: Boolean) = store.edit { it[ONLINE_LOOKUP] = value }
+
     suspend fun setAlertsEnabled(value: Boolean) = store.edit { it[ALERTS_ENABLED] = value }
 
     suspend fun setFahrenheit(value: Boolean) = store.edit { it[FAHRENHEIT] = value }
@@ -113,6 +122,8 @@ class SettingsRepository(context: Context, scope: CoroutineScope) {
         val BATTERY_THRESHOLD = floatPreferencesKey("battery_threshold")
         val SOC_THRESHOLD = floatPreferencesKey("soc_threshold")
         val USE_ROOT = booleanPreferencesKey("use_root")
+        val USE_SHIZUKU = booleanPreferencesKey("use_shizuku")
+        val ONLINE_LOOKUP = booleanPreferencesKey("online_lookup")
         val COLD_BELOW = floatPreferencesKey("level_cold_below")
         val WARM_FROM = floatPreferencesKey("level_warm_from")
         val HOT_FROM = floatPreferencesKey("level_hot_from")

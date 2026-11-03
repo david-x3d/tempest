@@ -10,6 +10,8 @@ import io.github.davidx3d.tempest.data.history.HistoryRepository
 import io.github.davidx3d.tempest.data.history.Sample
 import io.github.davidx3d.tempest.data.history.historyCsv
 import io.github.davidx3d.tempest.data.history.trendPerMinute
+import io.github.davidx3d.tempest.data.privilege.DeepReading
+import io.github.davidx3d.tempest.data.privilege.DeepRepository
 import io.github.davidx3d.tempest.data.settings.Settings
 import io.github.davidx3d.tempest.data.settings.SettingsRepository
 import io.github.davidx3d.tempest.data.thermal.ThermalReading
@@ -25,6 +27,7 @@ data class ThermalUiState(
     val status: ThermalStatus = ThermalStatus.None,
     val socHistory: List<Sample> = emptyList(),
     val threshold: Float = Settings.DEFAULT_SOC_THRESHOLD,
+    val deep: DeepReading = DeepReading(),
 ) {
     val socWarning: Boolean get() = (reading.socZone?.celsius ?: 0f) >= threshold
     val trendPerMinute: Float? get() = socHistory.trendPerMinute()
@@ -34,6 +37,7 @@ class ThermalViewModel(
     thermal: ThermalRepository,
     private val history: HistoryRepository,
     settings: SettingsRepository,
+    deep: DeepRepository,
 ) : ViewModel() {
 
     val uiState: StateFlow<ThermalUiState> =
@@ -42,8 +46,9 @@ class ThermalViewModel(
             thermal.status,
             history.soc,
             settings.settings,
-        ) { reading, status, soc, prefs ->
-            ThermalUiState(reading, status, soc, prefs.socThreshold)
+            deep.reading,
+        ) { reading, status, soc, prefs, extra ->
+            ThermalUiState(reading, status, soc, prefs.socThreshold, extra)
         }.stateIn(viewModelScope, SharingStarted.WhileSubscribed(5_000), ThermalUiState())
 
     fun exportCsv(): String = historyCsv(history.battery.value, history.soc.value)
@@ -52,7 +57,7 @@ class ThermalViewModel(
         val Factory = viewModelFactory {
             initializer {
                 val container = (this[APPLICATION_KEY] as TempestApp).container
-                ThermalViewModel(container.thermal, container.history, container.settings)
+                ThermalViewModel(container.thermal, container.history, container.settings, container.deep)
             }
         }
     }

@@ -21,7 +21,11 @@ data class SocInfo(
     val process: String?,
     val hardware: String?,
     val platform: String?,
+    val nameSource: NameSource = NameSource.Raw,
 )
+
+/** Where [SocInfo.name] came from. */
+enum class NameSource { Catalog, Online, Raw }
 
 /** Cores that share one frequency policy, e.g. "4× Cortex-A520 up to 2,0 GHz". */
 data class CpuCluster(
@@ -74,6 +78,9 @@ data class LiveChip(
     val gpuLoadPercent: Int? = null,
     val gpuMhz: Int? = null,
     val uptimeMillis: Long = 0,
+    /** Share of CPU time spent busy since the last tick, null when /proc/stat cannot be read. */
+    val cpuLoadPercent: Int? = null,
+    val coreLoadPercent: Map<Int, Int> = emptyMap(),
 )
 
 data class MemoryInfo(

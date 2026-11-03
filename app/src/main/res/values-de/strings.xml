@@ -63,10 +63,10 @@
     <string name="thermal_soc_warning">SoC über %1$s</string>
     <string name="thermal_status">Thermischer Systemstatus: %1$s</string>
     <string name="thermal_empty_title">Keine lesbaren Zonen</string>
-    <string name="thermal_empty_body">Dieses Gerät erlaubt Apps nicht, die Thermal Zones zu lesen. Aktiviere Root-Zugriff in den Einstellungen, um alle zu sehen.</string>
+    <string name="thermal_empty_body">Dieses Gerät erlaubt Apps nicht, die Thermal Zones zu lesen. Aktiviere Shizuku- oder Root-Zugriff in den Einstellungen, um alle zu sehen.</string>
     <string name="thermal_loading">Lese Thermal Zones…</string>
 
-    <string name="root_off">Ohne Root: nur lesbare Zonen</string>
+    <string name="root_off">Ohne Shizuku oder Root: nur lesbare Zonen</string>
     <string name="root_checking">Frage Root-Zugriff an…</string>
     <string name="root_granted">Root-Zugriff aktiv: alle Zonen</string>
     <string name="root_denied">Root-Zugriff verweigert</string>
@@ -214,7 +214,7 @@
     <string name="system_treble">Project Treble</string>
     <string name="system_slot">Aktiver Slot</string>
     <string name="system_vm">Java-VM</string>
-    <string name="system_root">Root</string>
+    <string name="system_root">Erhöhter Zugriff</string>
     <string name="system_uptime">Laufzeit</string>
     <string name="duration_days_hours_minutes">%1$d T %2$d h %3$d min</string>
     <string name="sensors_title">Sensoren</string>
@@ -261,4 +261,37 @@
         <item quantity="one">%d Kern</item>
         <item quantity="other">%d Kerne</item>
     </plurals>
+
+    <string name="shizuku_checking">Frage Shizuku an…</string>
+    <string name="shizuku_granted">Shizuku aktiv: alle Zonen</string>
+    <string name="shizuku_denied">Shizuku ist nicht bereit</string>
+    <string name="access_root">Root</string>
+    <string name="access_shizuku">Shizuku</string>
+    <string name="settings_shizuku">Shizuku-Zugriff</string>
+    <string name="settings_shizuku_body">Liest alle Thermal Zones, CPU- und GPU-Last, benannte Sensoren des Thermal-HAL und Ladelimits über Shizuku. Kein Root nötig. Optional.</string>
+    <string name="shizuku_not_installed">Shizuku ist nicht installiert</string>
+    <string name="shizuku_not_running">Shizuku läuft nicht. Starte es in der Shizuku-App.</string>
+    <string name="shizuku_needs_permission">Warte auf deine Erlaubnis</string>
+    <string name="shizuku_permission_denied">Erlaubnis verweigert. Erlaube Tempest in der Shizuku-App.</string>
+    <string name="shizuku_ready">Shizuku ist bereit</string>
+    <string name="shizuku_action_open">Shizuku öffnen</string>
+    <string name="shizuku_action_grant">Zugriff erlauben</string>
+    <string name="settings_lookup">Unbekannte Chips nachschlagen</string>
+    <string name="settings_lookup_body">Findet den Namen eines Chips, den die eingebaute Liste nicht kennt, auf Wikipedia (MediaTek und Qualcomm). Dafür wird eine öffentliche Chipliste geladen und auf deinem Handy abgeglichen, nichts über dein Gerät wird gesendet. Das ist die einzige Funktion, die das Internet nutzt. Optional.</string>
+    <string name="cpu_name_online">Name online gefunden</string>
+    <string name="cpu_load">CPU-Last</string>
+    <string name="section_extra">Weitere Sensoren</string>
+    <string name="section_extra_body">Benannte Sensoren des Thermal-HAL, Hardware-Monitore und Ladegeräte.</string>
+    <string name="extra_hal">Thermal-HAL</string>
+    <string name="extra_hwmon">Hardware-Monitor</string>
+    <string name="extra_supply">Stromversorgung</string>
+    <string name="charging_title">Ladedetails</string>
+    <string name="charging_health">Kapazitätszustand</string>
+    <string name="charging_full">Volle Ladekapazität</string>
+    <string name="charging_design">Nennkapazität</string>
+    <string name="charging_type">Lademodus</string>
+    <string name="charging_max_current">Max. Ladestrom</string>
+    <string name="charging_input_limit">Eingangsstrom-Limit</string>
+    <string name="charging_max_voltage">Max. Spannung</string>
+    <string name="charging_input">Ladegerät-Eingang</string>
 </resources>

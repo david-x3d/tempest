@@ -1,7 +1,14 @@
 <?xml version="1.0" encoding="utf-8"?>
 <manifest xmlns:android="http://schemas.android.com/apk/res/android">
 
-    <!-- Deliberately no INTERNET permission: every reading stays on the device. -->
+    <!-- Only used by the optional, off-by-default chip name lookup: it downloads a public Wikipedia
+         chip list and matches it on the device. No reading or device identifier is ever sent. -->
+    <uses-permission android:name="android.permission.INTERNET" />
+
+    <!-- Lets the settings find out whether the Shizuku app is installed. -->
+    <queries>
+        <package android:name="moe.shizuku.privileged.api" />
+    </queries>
 
     <!-- Background alerts -->
     <uses-permission android:name="android.permission.POST_NOTIFICATIONS" />
@@ -70,6 +77,15 @@
                 <action android:name="android.intent.action.MY_PACKAGE_REPLACED" />
             </intent-filter>
         </receiver>
+
+        <!-- Hands the Shizuku binder to this app when the user turns on Shizuku access. -->
+        <provider
+            android:name="rikka.shizuku.ShizukuProvider"
+            android:authorities="${applicationId}.shizuku"
+            android:enabled="true"
+            android:exported="true"
+            android:multiprocess="false"
+            android:permission="android.permission.INTERACT_ACROSS_USERS_FULL" />
 
         <!-- Persists the in-app language choice on Android 12 (13+ uses the system LocaleManager). -->
         <service

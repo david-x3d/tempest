@@ -11,7 +11,7 @@ import android.os.Environment
 import android.os.StatFs
 import android.os.SystemClock
 import android.view.Display
-import io.github.davidx3d.tempest.data.thermal.RootShell
+import io.github.davidx3d.tempest.data.privilege.PrivilegeManager
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.ExperimentalCoroutinesApi
@@ -20,7 +20,10 @@ import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
+import kotlinx.coroutines.flow.collectLatest
 import kotlinx.coroutines.flow.distinctUntilChanged
+import kotlinx.coroutines.flow.first
+import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.flow.flatMapLatest
 import kotlinx.coroutines.flow.flow
 import kotlinx.coroutines.flow.flowOn
@@ -33,22 +36,54 @@ import kotlin.math.sqrt
  * once in the background; memory, GPU load and uptime tick every second while someone watches.
  */
 @OptIn(ExperimentalCoroutinesApi::class)
-class DeviceRepository(private val context: Context, scope: CoroutineScope) {
+class DeviceRepository(
+    private val context: Context,
+    private val privilege: PrivilegeManager,
+    onlineLookup: Flow<Boolean>,
+    scope: CoroutineScope,
+) {
 
     private val _info = MutableStateFlow<DeviceInfo?>(null)
     val info: StateFlow<DeviceInfo?> = _info.asStateFlow()
+    private val lookup = SocLookup(context)
 
     init {
         scope.launch(Dispatchers.IO) { _info.value = runCatching { load() }.getOrNull() }
+        // Chips missing from the catalog are looked up once the user allows it.
+        scope.launch(Dispatchers.IO) {
+            onlineLookup.distinctUntilChanged().collectLatest { enabled ->
+                if (!enabled) return@collectLatest
+                val soc = info.first { it != null }?.soc ?: return@collectLatest
+                if (soc.nameSource != NameSource.Raw) return@collectLatest
+                val name = listOfNotNull(soc.code, soc.hardware, soc.platform).firstNotNullOfOrNull { lookup.find(it) }
+                    ?: return@collectLatest
+                _info.update { current ->
+                    current?.copy(soc = current.soc.copy(name = name.name, process = name.process ?: current.soc.process, nameSource = NameSource.Online))
+                }
+            }
+        }
     }
 
-    fun live(rootGranted: Flow<Boolean>): Flow<LiveChip> = rootGranted
+    fun live(privileged: Flow<Boolean>): Flow<LiveChip> = privileged
         .distinctUntilChanged()
         .flatMapLatest { root ->
             flow {
+                var previous: Map<Int, CpuTimes>? = null
                 while (true) {
                     val gpu = readGpu(root)
-                    emit(LiveChip(readMemory(), gpu.first, gpu.second, SystemClock.elapsedRealtime()))
+                    val times = readCpuTimes(root)
+                    val load = previous?.let { cpuLoad(it, times) }.orEmpty()
+                    previous = times
+                    emit(
+                        LiveChip(
+                            memory = readMemory(),
+                            gpuLoadPercent = gpu.first,
+                            gpuMhz = gpu.second,
+                            uptimeMillis = SystemClock.elapsedRealtime(),
+                            cpuLoadPercent = load[ALL_CORES],
+                            coreLoadPercent = load - ALL_CORES,
+                        ),
+                    )
                     delay(LIVE_MS)
                 }
             }
@@ -70,6 +105,7 @@ class DeviceRepository(private val context: Context, scope: CoroutineScope) {
             soc = SocInfo(
                 vendor = vendor,
                 name = known?.name ?: socModel ?: hardware ?: platform ?: Build.HARDWARE,
+                nameSource = if (known != null) NameSource.Catalog else NameSource.Raw,
                 code = socModel ?: platform,
                 process = known?.process,
                 hardware = hardware ?: Build.HARDWARE,
@@ -227,7 +263,7 @@ class DeviceRepository(private val context: Context, scope: CoroutineScope) {
     /** (load %, clock MHz) from the Adreno, Mali or MediaTek GED driver, whichever answers. */
     private suspend fun readGpu(root: Boolean): Pair<Int?, Int?> {
         val files = if (root) {
-            RootShell.run(GPU_FILES.joinToString(" ") { "echo \"$it|\$(cat $it 2>/dev/null)\";" })
+            privilege.run(GPU_FILES.joinToString(" ") { "echo \"$it|\$(cat $it 2>/dev/null)\";" })
                 ?.lineSequence()
                 ?.mapNotNull { line -> line.split('|', limit = 2).takeIf { it.size == 2 && it[1].isNotBlank() } }
                 ?.associate { it[0] to it[1].trim() }
@@ -243,6 +279,32 @@ class DeviceRepository(private val context: Context, scope: CoroutineScope) {
             ?: files[MALI_FREQ]?.toLongOrNull()?.let { (it / 1_000_000).toInt() }
         return load?.coerceIn(0, 100) to mhz?.takeIf { it > 0 }
     }
+
+    /** Busy and total jiffies per core from /proc/stat; key [ALL_CORES] is the whole CPU. */
+    private suspend fun readCpuTimes(privileged: Boolean): Map<Int, CpuTimes> {
+        val text = readText("/proc/stat")?.takeIf { it.startsWith("cpu") }
+            ?: (if (privileged) privilege.run("cat /proc/stat") else null)
+            ?: return emptyMap()
+        return text.lineSequence().filter { it.startsWith("cpu") }.mapNotNull { line ->
+            val parts = line.trim().split(Regex("\\s+"))
+            val id = parts[0].removePrefix("cpu").let { if (it.isEmpty()) ALL_CORES else it.toIntOrNull() } ?: return@mapNotNull null
+            val values = parts.drop(1).mapNotNull { it.toLongOrNull() }
+            if (values.size < 4) return@mapNotNull null
+            // user nice system idle iowait irq softirq steal
+            val idle = values[3] + values.getOrElse(4) { 0 }
+            id to CpuTimes(total = values.take(8).sum(), idle = idle)
+        }.toMap()
+    }
+
+    private fun cpuLoad(before: Map<Int, CpuTimes>, after: Map<Int, CpuTimes>): Map<Int, Int> =
+        after.mapNotNull { (id, now) ->
+            val then = before[id] ?: return@mapNotNull null
+            val total = now.total - then.total
+            if (total <= 0) return@mapNotNull null
+            id to (((total - (now.idle - then.idle)) * 100f) / total).toInt().coerceIn(0, 100)
+        }.toMap()
+
+    private class CpuTimes(val total: Long, val idle: Long)
 
     /** `getprop` lists every system property as "[key]: [value]". */
     private fun systemProperties(): Map<String, String> = runCatching {
@@ -261,6 +323,7 @@ class DeviceRepository(private val context: Context, scope: CoroutineScope) {
     private companion object {
         const val CPU_DIR = "/sys/devices/system/cpu"
         const val LIVE_MS = 1_000L
+        const val ALL_CORES = -1
         val PROP = Regex("""\[(.+?)]: \[(.*)]""")
         const val ADRENO_BUSY = "/sys/class/kgsl/kgsl-3d0/gpu_busy_percentage"
         const val ADRENO_CLOCK = "/sys/class/kgsl/kgsl-3d0/gpuclk"

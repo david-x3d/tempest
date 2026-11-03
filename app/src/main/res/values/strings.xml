@@ -70,10 +70,10 @@
     <string name="thermal_soc_warning">SoC is above %1$s</string>
     <string name="thermal_status">System thermal status: %1$s</string>
     <string name="thermal_empty_title">No readable zones</string>
-    <string name="thermal_empty_body">This device does not let apps read its thermal zones. Turn on root access in the settings to see all of them.</string>
+    <string name="thermal_empty_body">This device does not let apps read its thermal zones. Turn on Shizuku or root access in the settings to see all of them.</string>
     <string name="thermal_loading">Reading thermal zones…</string>
 
-    <string name="root_off">Without root: only readable zones</string>
+    <string name="root_off">Without Shizuku or root: only readable zones</string>
     <string name="root_checking">Asking for root access…</string>
     <string name="root_granted">Root access active: all zones</string>
     <string name="root_denied">Root access denied</string>
@@ -227,7 +227,7 @@
     <string name="system_treble">Project Treble</string>
     <string name="system_slot">Active slot</string>
     <string name="system_vm">Java VM</string>
-    <string name="system_root">Root</string>
+    <string name="system_root">Elevated access</string>
     <string name="system_uptime">Uptime</string>
     <string name="duration_days_hours_minutes">%1$d d %2$d h %3$d min</string>
     <string name="sensors_title">Sensors</string>
@@ -274,4 +274,37 @@
         <item quantity="one">%d core</item>
         <item quantity="other">%d cores</item>
     </plurals>
+
+    <string name="shizuku_checking">Asking Shizuku…</string>
+    <string name="shizuku_granted">Shizuku active: all zones</string>
+    <string name="shizuku_denied">Shizuku is not ready</string>
+    <string name="access_root">Root</string>
+    <string name="access_shizuku">Shizuku</string>
+    <string name="settings_shizuku">Shizuku access</string>
+    <string name="settings_shizuku_body">Reads every thermal zone, CPU and GPU load, named sensors of the thermal HAL and charging limits through Shizuku. No root needed. Optional.</string>
+    <string name="shizuku_not_installed">Shizuku is not installed</string>
+    <string name="shizuku_not_running">Shizuku is not running. Start it in the Shizuku app.</string>
+    <string name="shizuku_needs_permission">Waiting for your permission</string>
+    <string name="shizuku_permission_denied">Permission denied. Allow Tempest in the Shizuku app.</string>
+    <string name="shizuku_ready">Shizuku is ready</string>
+    <string name="shizuku_action_open">Open Shizuku</string>
+    <string name="shizuku_action_grant">Allow access</string>
+    <string name="settings_lookup">Look up unknown chips</string>
+    <string name="settings_lookup_body">Finds the name of a chip the built-in list does not know on Wikipedia (MediaTek and Qualcomm). It downloads a public chip list and matches it on your phone, nothing about your device is sent. This is the only feature that uses the internet. Optional.</string>
+    <string name="cpu_name_online">Name found online</string>
+    <string name="cpu_load">CPU load</string>
+    <string name="section_extra">More sensors</string>
+    <string name="section_extra_body">Named sensors of the thermal HAL, hardware monitors and chargers.</string>
+    <string name="extra_hal">Thermal HAL</string>
+    <string name="extra_hwmon">Hardware monitor</string>
+    <string name="extra_supply">Power supply</string>
+    <string name="charging_title">Charging details</string>
+    <string name="charging_health">Capacity health</string>
+    <string name="charging_full">Full charge capacity</string>
+    <string name="charging_design">Design capacity</string>
+    <string name="charging_type">Charge mode</string>
+    <string name="charging_max_current">Max charge current</string>
+    <string name="charging_input_limit">Input current limit</string>
+    <string name="charging_max_voltage">Max voltage</string>
+    <string name="charging_input">Charger input</string>
 </resources>

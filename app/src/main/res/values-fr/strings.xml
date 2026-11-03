@@ -65,10 +65,10 @@
     <string name="thermal_soc_warning">SoC au-dessus de %1$s</string>
     <string name="thermal_status">État thermique du système : %1$s</string>
     <string name="thermal_empty_title">Aucune zone lisible</string>
-    <string name="thermal_empty_body">Cet appareil ne permet pas aux applis de lire ses zones thermiques. Activez l’accès root dans les réglages pour toutes les voir.</string>
+    <string name="thermal_empty_body">Cet appareil ne permet pas aux applis de lire ses zones thermiques. Activez l’accès Shizuku ou root dans les réglages pour toutes les voir.</string>
     <string name="thermal_loading">Lecture des zones thermiques…</string>
 
-    <string name="root_off">Sans root : zones lisibles uniquement</string>
+    <string name="root_off">Sans Shizuku ni root : zones lisibles uniquement</string>
     <string name="root_checking">Demande d’accès root…</string>
     <string name="root_granted">Accès root actif : toutes les zones</string>
     <string name="root_denied">Accès root refusé</string>
@@ -217,7 +217,7 @@
     <string name="system_treble">Project Treble</string>
     <string name="system_slot">Slot actif</string>
     <string name="system_vm">VM Java</string>
-    <string name="system_root">Root</string>
+    <string name="system_root">Accès élevé</string>
     <string name="system_uptime">Temps de fonctionnement</string>
     <string name="duration_days_hours_minutes">%1$d j %2$d h %3$d min</string>
     <string name="sensors_title">Capteurs</string>
@@ -264,4 +264,37 @@
         <item quantity="one">%d cœur</item>
         <item quantity="other">%d cœurs</item>
     </plurals>
+
+    <string name="shizuku_checking">Demande à Shizuku…</string>
+    <string name="shizuku_granted">Shizuku actif : toutes les zones</string>
+    <string name="shizuku_denied">Shizuku n’est pas prêt</string>
+    <string name="access_root">Root</string>
+    <string name="access_shizuku">Shizuku</string>
+    <string name="settings_shizuku">Accès Shizuku</string>
+    <string name="settings_shizuku_body">Lit toutes les zones thermiques, la charge du CPU et du GPU, les capteurs nommés du HAL thermique et les limites de charge via Shizuku. Pas besoin de root. Facultatif.</string>
+    <string name="shizuku_not_installed">Shizuku n’est pas installé</string>
+    <string name="shizuku_not_running">Shizuku ne tourne pas. Lancez-le dans l’appli Shizuku.</string>
+    <string name="shizuku_needs_permission">En attente de votre autorisation</string>
+    <string name="shizuku_permission_denied">Autorisation refusée. Autorisez Tempest dans l’appli Shizuku.</string>
+    <string name="shizuku_ready">Shizuku est prêt</string>
+    <string name="shizuku_action_open">Ouvrir Shizuku</string>
+    <string name="shizuku_action_grant">Autoriser l’accès</string>
+    <string name="settings_lookup">Rechercher les puces inconnues</string>
+    <string name="settings_lookup_body">Trouve sur Wikipédia le nom d’une puce que la liste intégrée ne connaît pas (MediaTek et Qualcomm). Une liste publique de puces est téléchargée et comparée sur votre téléphone, rien sur votre appareil n’est envoyé. C’est la seule fonction qui utilise Internet. Facultatif.</string>
+    <string name="cpu_name_online">Nom trouvé en ligne</string>
+    <string name="cpu_load">Charge du CPU</string>
+    <string name="section_extra">Autres capteurs</string>
+    <string name="section_extra_body">Capteurs nommés du HAL thermique, moniteurs matériels et chargeurs.</string>
+    <string name="extra_hal">HAL thermique</string>
+    <string name="extra_hwmon">Moniteur matériel</string>
+    <string name="extra_supply">Alimentation</string>
+    <string name="charging_title">Détails de charge</string>
+    <string name="charging_health">État de la capacité</string>
+    <string name="charging_full">Capacité à pleine charge</string>
+    <string name="charging_design">Capacité d’origine</string>
+    <string name="charging_type">Mode de charge</string>
+    <string name="charging_max_current">Courant de charge max.</string>
+    <string name="charging_input_limit">Limite du courant d’entrée</string>
+    <string name="charging_max_voltage">Tension max.</string>
+    <string name="charging_input">Entrée du chargeur</string>
 </resources>

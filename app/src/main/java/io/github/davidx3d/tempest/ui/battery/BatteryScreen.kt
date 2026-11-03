@@ -47,8 +47,11 @@ import io.github.davidx3d.tempest.data.battery.BatteryHealth
 import io.github.davidx3d.tempest.data.battery.BatterySnapshot
 import io.github.davidx3d.tempest.data.battery.ChargeStatus
 import io.github.davidx3d.tempest.data.battery.PowerSource
+import io.github.davidx3d.tempest.data.privilege.ChargingDetails
 import io.github.davidx3d.tempest.ui.celsius
+import io.github.davidx3d.tempest.ui.components.HeatBar
 import io.github.davidx3d.tempest.ui.components.HistoryCard
+import io.github.davidx3d.tempest.ui.components.InfoRow
 import io.github.davidx3d.tempest.ui.components.SectionCard
 import io.github.davidx3d.tempest.ui.components.StatTile
 import io.github.davidx3d.tempest.ui.components.TemperatureHero
@@ -104,6 +107,7 @@ fun BatteryScreen(
         }
         item { LevelCard(snapshot) }
         item { StatsGrid(snapshot) }
+        state.charging?.let { details -> item { ChargingCard(details) } }
         item { HistoryCard(state.history, state.threshold, csv = viewModel::exportCsv) }
     }
 }
@@ -192,6 +196,32 @@ private fun StatsGrid(snapshot: BatterySnapshot) {
                 if (row.size == 1) Spacer(Modifier.weight(1f))
             }
         }
+    }
+}
+
+/** Capacity health and charge limits straight from the kernel; only present with Shizuku or root. */
+@Composable
+private fun ChargingCard(d: ChargingDetails) {
+    val locale = currentLocale()
+    @Composable fun mah(value: Int) = formatUnit(R.string.unit_mah, value.toFloat(), 0)
+    SectionCard(title = stringResource(R.string.charging_title)) {
+        d.healthPercent?.let { health ->
+            Column(verticalArrangement = Arrangement.spacedBy(6.dp)) {
+                Row {
+                    Text(stringResource(R.string.charging_health), style = MaterialTheme.typography.titleSmall, modifier = Modifier.weight(1f))
+                    Text(formatUnit(R.string.unit_percent, health.toFloat(), 0), style = MaterialTheme.typography.titleSmall)
+                }
+                HeatBar((health / 100f).coerceIn(0f, 1f), if (health >= 80) MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.error)
+            }
+        }
+        InfoRow(stringResource(R.string.charging_full), d.fullMah?.let { mah(it) })
+        InfoRow(stringResource(R.string.charging_design), d.designMah?.let { mah(it) })
+        InfoRow(stringResource(R.string.battery_cycles), d.cycleCount?.let { formatNumber(it.toFloat(), locale, 0) })
+        InfoRow(stringResource(R.string.charging_type), d.chargeType)
+        InfoRow(stringResource(R.string.charging_max_current), d.maxChargeMa?.let { formatUnit(R.string.unit_milliampere, it.toFloat(), 0) })
+        InfoRow(stringResource(R.string.charging_input_limit), d.inputLimitMa?.let { formatUnit(R.string.unit_milliampere, it.toFloat(), 0) })
+        InfoRow(stringResource(R.string.charging_max_voltage), d.maxVoltageV?.let { formatUnit(R.string.unit_volt, it, 2) })
+        InfoRow(stringResource(R.string.charging_input), d.inputWatts?.let { formatUnit(R.string.unit_watt, it, 1) })
     }
 }
 

@@ -10,7 +10,8 @@ import io.github.davidx3d.tempest.data.device.DeviceInfo
 import io.github.davidx3d.tempest.data.device.DeviceRepository
 import io.github.davidx3d.tempest.data.device.LiveChip
 import io.github.davidx3d.tempest.data.thermal.CpuCore
-import io.github.davidx3d.tempest.data.thermal.RootState
+import io.github.davidx3d.tempest.data.privilege.Access
+import io.github.davidx3d.tempest.data.privilege.PrivilegeManager
 import io.github.davidx3d.tempest.data.thermal.ThermalRepository
 import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.StateFlow
@@ -24,7 +25,7 @@ data class CpuUiState(
     val cores: List<CpuCore> = emptyList(),
     val socCelsius: Float? = null,
     val live: LiveChip = LiveChip(),
-    val root: RootState = RootState.Off,
+    val access: Access = Access(),
 ) {
     /** Average of current/max clock over all online cores, 0..1. */
     val clockLoad: Float?
@@ -32,22 +33,22 @@ data class CpuUiState(
             .takeIf { it.isNotEmpty() }?.average()?.toFloat()?.coerceIn(0f, 1f)
 }
 
-class CpuViewModel(device: DeviceRepository, thermal: ThermalRepository) : ViewModel() {
+class CpuViewModel(device: DeviceRepository, thermal: ThermalRepository, privilege: PrivilegeManager) : ViewModel() {
 
     val uiState: StateFlow<CpuUiState> =
         combine(
             device.info,
             thermal.reading,
-            device.live(thermal.reading.map { it.root == RootState.Granted }).onStart { emit(LiveChip()) },
+            device.live(privilege.access.map { it.granted }).onStart { emit(LiveChip()) },
         ) { info, reading, live ->
-            CpuUiState(info, reading.cpuCores, reading.socZone?.celsius, live, reading.root)
+            CpuUiState(info, reading.cpuCores, reading.socZone?.celsius, live, reading.access)
         }.stateIn(viewModelScope, SharingStarted.WhileSubscribed(5_000), CpuUiState())
 
     companion object {
         val Factory = viewModelFactory {
             initializer {
                 val container = (this[APPLICATION_KEY] as TempestApp).container
-                CpuViewModel(container.device, container.thermal)
+                CpuViewModel(container.device, container.thermal, container.privilege)
             }
         }
     }

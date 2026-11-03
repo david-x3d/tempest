@@ -12,6 +12,8 @@ import io.github.davidx3d.tempest.data.history.HistoryRepository
 import io.github.davidx3d.tempest.data.history.Sample
 import io.github.davidx3d.tempest.data.history.historyCsv
 import io.github.davidx3d.tempest.data.history.trendPerMinute
+import io.github.davidx3d.tempest.data.privilege.ChargingDetails
+import io.github.davidx3d.tempest.data.privilege.DeepRepository
 import io.github.davidx3d.tempest.data.settings.Settings
 import io.github.davidx3d.tempest.data.settings.SettingsRepository
 import kotlinx.coroutines.flow.SharingStarted
@@ -24,6 +26,7 @@ data class BatteryUiState(
     val history: List<Sample> = emptyList(),
     val threshold: Float = Settings.DEFAULT_BATTERY_THRESHOLD,
     val trendPerMinute: Float? = null,
+    val charging: ChargingDetails? = null,
 ) {
     val isWarning: Boolean get() = snapshot != null && snapshot.temperatureCelsius >= threshold
 }
@@ -32,11 +35,12 @@ class BatteryViewModel(
     battery: BatteryRepository,
     private val history: HistoryRepository,
     settings: SettingsRepository,
+    deep: DeepRepository,
 ) : ViewModel() {
 
     val uiState: StateFlow<BatteryUiState> =
-        combine(battery.snapshot, history.battery, settings.settings) { snapshot, samples, prefs ->
-            BatteryUiState(snapshot, samples, prefs.batteryThreshold, samples.trendPerMinute())
+        combine(battery.snapshot, history.battery, settings.settings, deep.reading) { snapshot, samples, prefs, extra ->
+            BatteryUiState(snapshot, samples, prefs.batteryThreshold, samples.trendPerMinute(), extra.charging)
         }.stateIn(viewModelScope, SharingStarted.WhileSubscribed(5_000), BatteryUiState())
 
     fun exportCsv(): String = historyCsv(history.battery.value, history.soc.value)
@@ -45,7 +49,7 @@ class BatteryViewModel(
         val Factory = viewModelFactory {
             initializer {
                 val container = (this[APPLICATION_KEY] as TempestApp).container
-                BatteryViewModel(container.battery, container.history, container.settings)
+                BatteryViewModel(container.battery, container.history, container.settings, container.deep)
             }
         }
     }

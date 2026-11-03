@@ -2,6 +2,8 @@ package io.github.davidx3d.tempest.data.thermal
 
 import android.content.Context
 import android.os.PowerManager
+import io.github.davidx3d.tempest.data.privilege.Access
+import io.github.davidx3d.tempest.data.privilege.PrivilegeManager
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.ExperimentalCoroutinesApi
@@ -11,7 +13,6 @@ import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.callbackFlow
-import kotlinx.coroutines.flow.distinctUntilChanged
 import kotlinx.coroutines.flow.flatMapLatest
 import kotlinx.coroutines.flow.flow
 import kotlinx.coroutines.flow.flowOn
@@ -20,20 +21,19 @@ import java.io.File
 import kotlin.math.abs
 
 /**
- * Reads thermal zones, cooling devices and CPU clocks from sysfs. Without root only what SELinux
- * lets an app read is listed; with root everything is read through one `su -c` call per refresh.
+ * Reads thermal zones, cooling devices and CPU clocks from sysfs. Without Shizuku or root only what
+ * SELinux lets an app read is listed; with either, everything is read through one shell call per refresh.
  */
 @OptIn(ExperimentalCoroutinesApi::class)
 class ThermalRepository(
     context: Context,
-    useRoot: Flow<Boolean>,
+    private val privilege: PrivilegeManager,
     scope: CoroutineScope,
 ) {
     private val powerManager = context.getSystemService(PowerManager::class.java)
 
-    val reading: StateFlow<ThermalReading> = useRoot
-        .distinctUntilChanged()
-        .flatMapLatest { wantsRoot -> poll(wantsRoot) }
+    val reading: StateFlow<ThermalReading> = privilege.access
+        .flatMapLatest { access -> poll(access) }
         .flowOn(Dispatchers.IO)
         .stateIn(scope, SharingStarted.Eagerly, ThermalReading())
 
@@ -44,15 +44,11 @@ class ThermalRepository(
         awaitClose { powerManager.removeThermalStatusListener(listener) }
     }.stateIn(scope, SharingStarted.Eagerly, ThermalStatus.None)
 
-    private fun poll(wantsRoot: Boolean): Flow<ThermalReading> = flow {
-        var root = RootState.Off
-        if (wantsRoot) {
-            emit(ThermalReading(root = RootState.Checking))
-            root = if (RootShell.isGranted()) RootState.Granted else RootState.Denied
-        }
+    private fun poll(access: Access): Flow<ThermalReading> = flow {
+        if (access.state == RootState.Checking) emit(ThermalReading(access = access))
         while (true) {
-            val files = (if (root == RootState.Granted) readWithRoot() else null) ?: readDirectly()
-            emit(parse(files, root))
+            val files = (if (access.granted) readPrivileged() else null) ?: readDirectly()
+            emit(parse(files, access))
             delay(POLL_MS)
         }
     }
@@ -74,15 +70,15 @@ class ThermalRepository(
         return out
     }
 
-    private suspend fun readWithRoot(): Map<String, String>? {
-        val output = RootShell.run(ROOT_SCRIPT) ?: return null
+    private suspend fun readPrivileged(): Map<String, String>? {
+        val output = privilege.run(ROOT_SCRIPT) ?: return null
         return output.lineSequence()
             .mapNotNull { line -> line.split('|', limit = 2).takeIf { it.size == 2 } }
             .filter { it[1].isNotBlank() }
             .associate { it[0].trim() to it[1].trim() }
     }
 
-    private fun parse(files: Map<String, String>, root: RootState): ThermalReading {
+    private fun parse(files: Map<String, String>, access: Access): ThermalReading {
         val zones = indexed(files, "$THERMAL_DIR/$ZONE").mapNotNull { (i, base) ->
             val raw = files["$base/temp"]?.toLongOrNull() ?: return@mapNotNull null
             toZone(i, files["$base/type"].orEmpty(), raw)
@@ -102,7 +98,7 @@ class ThermalRepository(
             coolingDevices = cooling,
             cpuCores = cpus,
             headroom = powerManager.getThermalHeadroom(HEADROOM_FORECAST_S).takeIf { !it.isNaN() && it >= 0f },
-            root = root,
+            access = access,
             loaded = true,
         )
     }

@@ -81,6 +81,7 @@ object SocCatalog {
         "sdm450" to SocName("Snapdragon 450", "14 nm"),
         "sdm439" to SocName("Snapdragon 439", "12 nm"),
         // MediaTek Dimensity / Helio
+        "mt6995" to SocName("Dimensity 9600 Pro", "2 nm"),
         "mt6993" to SocName("Dimensity 9500", "3 nm"),
         "mt6991" to SocName("Dimensity 9400", "3 nm"),
         "mt6989" to SocName("Dimensity 9300", "4 nm"),

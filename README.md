@@ -57,7 +57,13 @@ Built with Jetpack Compose and Material 3 Expressive.
   `CircularWavyProgressIndicator` and `LinearWavyProgressIndicator`, `MotionScheme.expressive()`
   springs, variable Roboto Flex type that gets heavier as it heats up, cool-blue to hot-red
   colour scale, dynamic colour, dark theme, edge-to-edge
-- **Private by design**: no internet permission, nothing leaves the device
+- **Shizuku support**: no root needed. Through Shizuku Tempest also reads CPU and GPU load, the thermal
+  HAL's named sensors (skin, modem, NPU …), hwmon chips, charger temperatures, battery capacity
+  health and charge limits
+- **Chip names**: a large built-in list (including the Dimensity 9600 Pro, `MT6995`) plus an optional
+  lookup on Wikipedia for chips it does not know (MediaTek and Qualcomm)
+- **Private by design**: nothing about your device ever leaves it. The internet permission is only used
+  by the optional, off-by-default chip lookup, which downloads a public chip list and matches it locally
 
 ## Languages
 
@@ -79,6 +85,12 @@ The APK ends up in `app/build/outputs/apk/debug/`. Every push to `main` also bui
 GitHub Actions. Download it from the run's **Artifacts** section.
 
 Minimum Android version: 12 (API 31).
+
+## Shizuku (optional)
+
+Install [Shizuku](https://shizuku.rikka.app/), start it, then turn on **Settings → Shizuku access** and
+allow Tempest in the prompt. Commands run read-only through a small Shizuku user service. Shizuku wins
+over root when both are on.
 
 ## Root (optional)
 

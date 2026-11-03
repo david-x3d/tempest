@@ -65,10 +65,10 @@
     <string name="thermal_soc_warning">SoC oltre %1$s</string>
     <string name="thermal_status">Stato termico del sistema: %1$s</string>
     <string name="thermal_empty_title">Nessuna zona leggibile</string>
-    <string name="thermal_empty_body">Questo dispositivo non consente alle app di leggere le zone termiche. Attiva l’accesso root nelle impostazioni per vederle tutte.</string>
+    <string name="thermal_empty_body">Questo dispositivo non consente alle app di leggere le zone termiche. Attiva l’accesso Shizuku o root nelle impostazioni per vederle tutte.</string>
     <string name="thermal_loading">Lettura delle zone termiche…</string>
 
-    <string name="root_off">Senza root: solo zone leggibili</string>
+    <string name="root_off">Senza Shizuku o root: solo zone leggibili</string>
     <string name="root_checking">Richiesta dell’accesso root…</string>
     <string name="root_granted">Accesso root attivo: tutte le zone</string>
     <string name="root_denied">Accesso root negato</string>
@@ -217,7 +217,7 @@
     <string name="system_treble">Project Treble</string>
     <string name="system_slot">Slot attivo</string>
     <string name="system_vm">VM Java</string>
-    <string name="system_root">Root</string>
+    <string name="system_root">Accesso elevato</string>
     <string name="system_uptime">Tempo di attività</string>
     <string name="duration_days_hours_minutes">%1$d g %2$d h %3$d min</string>
     <string name="sensors_title">Sensori</string>
@@ -264,4 +264,37 @@
         <item quantity="one">%d core</item>
         <item quantity="other">%d core</item>
     </plurals>
+
+    <string name="shizuku_checking">Richiesta a Shizuku…</string>
+    <string name="shizuku_granted">Shizuku attivo: tutte le zone</string>
+    <string name="shizuku_denied">Shizuku non è pronto</string>
+    <string name="access_root">Root</string>
+    <string name="access_shizuku">Shizuku</string>
+    <string name="settings_shizuku">Accesso Shizuku</string>
+    <string name="settings_shizuku_body">Legge tutte le zone termiche, il carico di CPU e GPU, i sensori con nome dell’HAL termico e i limiti di ricarica tramite Shizuku. Non serve il root. Facoltativo.</string>
+    <string name="shizuku_not_installed">Shizuku non è installato</string>
+    <string name="shizuku_not_running">Shizuku non è in esecuzione. Avvialo nell’app Shizuku.</string>
+    <string name="shizuku_needs_permission">In attesa del tuo permesso</string>
+    <string name="shizuku_permission_denied">Permesso negato. Consenti Tempest nell’app Shizuku.</string>
+    <string name="shizuku_ready">Shizuku è pronto</string>
+    <string name="shizuku_action_open">Apri Shizuku</string>
+    <string name="shizuku_action_grant">Consenti l’accesso</string>
+    <string name="settings_lookup">Cerca i chip sconosciuti</string>
+    <string name="settings_lookup_body">Trova su Wikipedia il nome di un chip che l’elenco integrato non conosce (MediaTek e Qualcomm). Scarica un elenco pubblico di chip e lo confronta sul telefono, non viene inviato nulla del dispositivo. È l’unica funzione che usa Internet. Facoltativo.</string>
+    <string name="cpu_name_online">Nome trovato online</string>
+    <string name="cpu_load">Carico CPU</string>
+    <string name="section_extra">Altri sensori</string>
+    <string name="section_extra_body">Sensori con nome dell’HAL termico, monitor hardware e caricabatterie.</string>
+    <string name="extra_hal">HAL termico</string>
+    <string name="extra_hwmon">Monitor hardware</string>
+    <string name="extra_supply">Alimentazione</string>
+    <string name="charging_title">Dettagli di ricarica</string>
+    <string name="charging_health">Stato della capacità</string>
+    <string name="charging_full">Capacità a carica piena</string>
+    <string name="charging_design">Capacità nominale</string>
+    <string name="charging_type">Modalità di ricarica</string>
+    <string name="charging_max_current">Corrente di ricarica max.</string>
+    <string name="charging_input_limit">Limite corrente in ingresso</string>
+    <string name="charging_max_voltage">Tensione max.</string>
+    <string name="charging_input">Ingresso del caricabatterie</string>
 </resources>

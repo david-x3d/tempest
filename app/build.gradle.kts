@@ -11,8 +11,8 @@ android {
         applicationId = "io.github.davidx3d.tempest"
         minSdk = 31
         targetSdk = 36
-        versionCode = 3
-        versionName = "1.2.0"
+        versionCode = 4
+        versionName = "1.3.0"
     }
 
     buildTypes {
@@ -29,6 +29,7 @@ android {
 
     buildFeatures {
         compose = true
+        aidl = true
     }
 
     androidResources {
@@ -55,6 +56,8 @@ dependencies {
     implementation(libs.androidx.lifecycle.viewmodel.compose)
     implementation(libs.androidx.datastore.preferences)
     implementation(libs.kotlinx.coroutines.android)
+    implementation(libs.shizuku.api)
+    implementation(libs.shizuku.provider)
 
     implementation(platform(libs.androidx.compose.bom))
     implementation(libs.androidx.compose.ui)

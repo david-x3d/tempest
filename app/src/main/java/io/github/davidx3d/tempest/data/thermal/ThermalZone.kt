@@ -1,5 +1,7 @@
 package io.github.davidx3d.tempest.data.thermal
 
+import io.github.davidx3d.tempest.data.privilege.Access
+
 data class ThermalZone(
     val index: Int,
     val type: String,
@@ -31,7 +33,7 @@ data class ThermalReading(
     val cpuCores: List<CpuCore> = emptyList(),
     /** PowerManager forecast for the next 10 s; 1.0 means throttling starts. Null if unsupported. */
     val headroom: Float? = null,
-    val root: RootState = RootState.Off,
+    val access: Access = Access(),
     val loaded: Boolean = false,
 ) {
     /** The hottest zone that looks like part of the SoC (CPU, GPU, on-die sensors). */

@@ -57,7 +57,13 @@ umso stärker schwingt, je heißer es wird. Gebaut mit Jetpack Compose und Mater
   `CircularWavyProgressIndicator` und `LinearWavyProgressIndicator`, Federanimationen mit
   `MotionScheme.expressive()`, variable Schrift Roboto Flex, die mit der Hitze kräftiger wird,
   Farbskala von kühlem Blau bis heißem Rot, Dynamic Color, dunkles Design, Edge-to-Edge
-- **Privat**: keine Internetberechtigung, nichts verlässt das Gerät
+- **Shizuku-Unterstützung**: ohne Root. Über Shizuku liest Tempest zusätzlich CPU- und GPU-Last, die
+  benannten Sensoren des Thermal-HAL (Skin, Modem, NPU …), hwmon-Chips, Ladegerät-Temperaturen,
+  Akku-Kapazitätszustand und Ladelimits
+- **Chip-Namen**: große eingebaute Liste (auch Dimensity 9600 Pro, `MT6995`) und eine optionale
+  Wikipedia-Suche für unbekannte Chips (MediaTek und Qualcomm)
+- **Privat**: nichts über dein Gerät verlässt es. Die Internetberechtigung nutzt nur die optionale,
+  standardmäßig ausgeschaltete Chip-Suche, die eine öffentliche Chipliste lädt und lokal abgleicht
 
 ## Sprachen
 
@@ -79,6 +85,12 @@ Die APK liegt danach in `app/build/outputs/apk/debug/`. Jeder Push auf `main` ba
 per GitHub Actions. Du findest sie im Bereich **Artifacts** des jeweiligen Laufs.
 
 Mindestens Android 12 (API 31).
+
+## Shizuku (optional)
+
+Installiere [Shizuku](https://shizuku.rikka.app/), starte es, aktiviere **Einstellungen → Shizuku-Zugriff**
+und erlaube Tempest. Die Befehle laufen nur lesend über einen kleinen Shizuku-Dienst. Shizuku hat
+Vorrang vor Root, wenn beides an ist.
 
 ## Root (optional)
 

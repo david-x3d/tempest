@@ -2,6 +2,7 @@ package io.github.davidx3d.tempest.ui.settings
 
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.ColumnScope
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
@@ -18,6 +19,7 @@ import androidx.compose.material.icons.rounded.Check
 import androidx.compose.material.icons.rounded.Close
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.OutlinedButton
 import androidx.compose.material3.RadioButton
 import androidx.compose.material3.Slider
 import androidx.compose.material3.SliderDefaults
@@ -68,6 +70,9 @@ import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Brush
 import androidx.core.app.NotificationManagerCompat
 import androidx.lifecycle.compose.LifecycleResumeEffect
+import io.github.davidx3d.tempest.data.privilege.PrivilegeMode
+import io.github.davidx3d.tempest.data.privilege.ShizukuShell
+import io.github.davidx3d.tempest.data.privilege.ShizukuStatus
 import io.github.davidx3d.tempest.data.thermal.RootState
 import io.github.davidx3d.tempest.ui.celsius
 import io.github.davidx3d.tempest.ui.components.SectionCard
@@ -81,6 +86,12 @@ fun SettingsScreen(
     viewModel: SettingsViewModel = viewModel(factory = SettingsViewModel.Factory),
 ) {
     val state by viewModel.uiState.collectAsStateWithLifecycle()
+    val context = LocalContext.current
+    // Shizuku may have been started or granted in its own app while Tempest was in the background.
+    LifecycleResumeEffect(Unit) {
+        viewModel.refreshShizuku()
+        onPauseOrDispose {}
+    }
 
     LazyColumn(
         modifier = Modifier.fillMaxSize(),
@@ -120,7 +131,23 @@ fun SettingsScreen(
                 onTest = viewModel::sendTestAlert,
             )
         }
-        item { RootCard(state.settings.useRoot, state.root, viewModel::setUseRoot) }
+        item {
+            ShizukuCard(
+                enabled = state.settings.useShizuku,
+                status = state.shizuku,
+                onChange = viewModel::setUseShizuku,
+                onGrant = viewModel::requestShizukuPermission,
+                onOpen = { ShizukuShell.openShizuku(context) },
+            )
+        }
+        item {
+            RootCard(
+                state.settings.useRoot,
+                state.access.state.takeIf { state.access.mode == PrivilegeMode.Root } ?: RootState.Off,
+                viewModel::setUseRoot,
+            )
+        }
+        item { LookupCard(state.settings.onlineLookup, viewModel::setOnlineLookup) }
         item { LanguageCard(state.language, viewModel::setLanguage) }
         item { AboutCard() }
     }
@@ -378,6 +405,100 @@ private fun canUseFullScreen(context: Context): Boolean =
 
 @Composable
 private fun RootCard(enabled: Boolean, root: RootState, onChange: (Boolean) -> Unit) {
+    SwitchCard(
+        title = stringResource(R.string.settings_root),
+        body = stringResource(R.string.settings_root_body),
+        enabled = enabled,
+        onChange = onChange,
+    ) {
+        if (enabled) {
+            StatusLine(
+                stringResource(
+                    when (root) {
+                        RootState.Checking -> R.string.root_checking
+                        RootState.Granted -> R.string.root_granted
+                        RootState.Denied -> R.string.root_denied
+                        RootState.Off -> R.string.root_off
+                    },
+                ),
+                isError = root == RootState.Denied,
+            )
+        }
+    }
+}
+
+@Composable
+private fun ShizukuCard(
+    enabled: Boolean,
+    status: ShizukuStatus,
+    onChange: (Boolean) -> Unit,
+    onGrant: () -> Unit,
+    onOpen: () -> Unit,
+) {
+    SwitchCard(
+        title = stringResource(R.string.settings_shizuku),
+        body = stringResource(R.string.settings_shizuku_body),
+        enabled = enabled,
+        onChange = onChange,
+    ) {
+        if (enabled) {
+            StatusLine(
+                stringResource(
+                    when (status) {
+                        ShizukuStatus.NotInstalled -> R.string.shizuku_not_installed
+                        ShizukuStatus.NotRunning -> R.string.shizuku_not_running
+                        ShizukuStatus.NeedsPermission -> R.string.shizuku_needs_permission
+                        ShizukuStatus.Denied -> R.string.shizuku_permission_denied
+                        ShizukuStatus.Ready -> R.string.shizuku_ready
+                    },
+                ),
+                isError = status != ShizukuStatus.Ready && status != ShizukuStatus.NeedsPermission,
+            )
+            if (status != ShizukuStatus.Ready) {
+                OutlinedButton(
+                    onClick = if (status == ShizukuStatus.NeedsPermission) onGrant else onOpen,
+                    modifier = Modifier.padding(top = 8.dp),
+                ) {
+                    Text(
+                        stringResource(
+                            if (status == ShizukuStatus.NeedsPermission) R.string.shizuku_action_grant else R.string.shizuku_action_open,
+                        ),
+                    )
+                }
+            }
+        }
+    }
+}
+
+@Composable
+private fun LookupCard(enabled: Boolean, onChange: (Boolean) -> Unit) {
+    SwitchCard(
+        title = stringResource(R.string.settings_lookup),
+        body = stringResource(R.string.settings_lookup_body),
+        enabled = enabled,
+        onChange = onChange,
+    ) {}
+}
+
+@Composable
+private fun StatusLine(text: String, isError: Boolean) {
+    Text(
+        text,
+        style = MaterialTheme.typography.labelLarge,
+        color = if (isError) MaterialTheme.colorScheme.error else MaterialTheme.colorScheme.primary,
+        modifier = Modifier.padding(top = 4.dp),
+    )
+}
+
+/** A card with a title, an explanation and one switch, plus room for a status underneath. */
+@Composable
+private fun SwitchCard(
+    title: String,
+    body: String,
+    enabled: Boolean,
+    onChange: (Boolean) -> Unit,
+    status: @Composable ColumnScope.() -> Unit,
+) {
     val haptics = LocalHapticFeedback.current
     SectionCard {
         Row(
@@ -390,27 +511,9 @@ private fun RootCard(enabled: Boolean, root: RootState, onChange: (Boolean) -> U
             verticalAlignment = Alignment.CenterVertically,
         ) {
             Column(Modifier.weight(1f)) {
-                Text(stringResource(R.string.settings_root), style = MaterialTheme.typography.titleLarge)
-                Text(
-                    stringResource(R.string.settings_root_body),
-                    style = MaterialTheme.typography.bodyMedium,
-                    color = MaterialTheme.colorScheme.onSurfaceVariant,
-                )
-                if (enabled) {
-                    Text(
-                        stringResource(
-                            when (root) {
-                                RootState.Checking -> R.string.root_checking
-                                RootState.Granted -> R.string.root_granted
-                                RootState.Denied -> R.string.root_denied
-                                RootState.Off -> R.string.root_off
-                            },
-                        ),
-                        style = MaterialTheme.typography.labelLarge,
-                        color = if (root == RootState.Denied) MaterialTheme.colorScheme.error else MaterialTheme.colorScheme.primary,
-                        modifier = Modifier.padding(top = 4.dp),
-                    )
-                }
+                Text(title, style = MaterialTheme.typography.titleLarge)
+                Text(body, style = MaterialTheme.typography.bodyMedium, color = MaterialTheme.colorScheme.onSurfaceVariant)
+                status()
             }
             Spacer(Modifier.width(16.dp))
             Switch(

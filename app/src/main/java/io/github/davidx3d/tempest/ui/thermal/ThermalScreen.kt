@@ -51,6 +51,10 @@ import androidx.graphics.shapes.RoundedPolygon
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.lifecycle.viewmodel.compose.viewModel
 import io.github.davidx3d.tempest.R
+import io.github.davidx3d.tempest.data.privilege.Access
+import io.github.davidx3d.tempest.data.privilege.ExtraSource
+import io.github.davidx3d.tempest.data.privilege.ExtraTemp
+import io.github.davidx3d.tempest.data.privilege.PrivilegeMode
 import io.github.davidx3d.tempest.data.thermal.CoolingDevice
 import io.github.davidx3d.tempest.data.thermal.RootState
 import io.github.davidx3d.tempest.data.thermal.ThermalStatus
@@ -86,7 +90,7 @@ fun ThermalScreen(
         verticalArrangement = Arrangement.spacedBy(12.dp),
         horizontalAlignment = Alignment.CenterHorizontally,
     ) {
-        item { Header(reading.zones.size, reading.root, state.status) }
+        item { Header(reading.zones.size, reading.access, state.status) }
 
         if (soc != null) {
             item {
@@ -118,12 +122,13 @@ fun ThermalScreen(
             }
         }
 
+        if (state.deep.temps.isNotEmpty()) item { ExtraTempsCard(state.deep.temps, state.threshold) }
         if (reading.coolingDevices.isNotEmpty()) item { CoolingCard(reading.coolingDevices) }
     }
 }
 
 @Composable
-private fun Header(count: Int, root: RootState, status: ThermalStatus) {
+private fun Header(count: Int, access: Access, status: ThermalStatus) {
     Column(Modifier.fillMaxWidth(), verticalArrangement = Arrangement.spacedBy(8.dp)) {
         Text(stringResource(R.string.thermal_title), style = MaterialTheme.typography.displaySmall)
         if (count > 0) {
@@ -138,17 +143,22 @@ private fun Header(count: Int, root: RootState, status: ThermalStatus) {
             label = {
                 Text(
                     stringResource(
-                        when (root) {
-                            RootState.Off -> R.string.root_off
-                            RootState.Checking -> R.string.root_checking
-                            RootState.Granted -> R.string.root_granted
-                            RootState.Denied -> R.string.root_denied
+                        when (access.mode to access.state) {
+                            PrivilegeMode.Shizuku to RootState.Checking -> R.string.shizuku_checking
+                            PrivilegeMode.Shizuku to RootState.Granted -> R.string.shizuku_granted
+                            PrivilegeMode.Shizuku to RootState.Denied -> R.string.shizuku_denied
+                            else -> when (access.state) {
+                                RootState.Off -> R.string.root_off
+                                RootState.Checking -> R.string.root_checking
+                                RootState.Granted -> R.string.root_granted
+                                RootState.Denied -> R.string.root_denied
+                            }
                         },
                     ),
                 )
             },
             leadingIcon = {
-                Icon(if (root == RootState.Granted) Icons.Rounded.LockOpen else Icons.Rounded.Lock, contentDescription = null)
+                Icon(if (access.granted) Icons.Rounded.LockOpen else Icons.Rounded.Lock, contentDescription = null)
             },
         )
         Text(
@@ -248,6 +258,39 @@ private fun CoolingCard(devices: List<CoolingDevice>) {
                     )
                 }
                 HeatBar(device.current.toFloat() / device.max, color)
+            }
+        }
+    }
+}
+
+@Composable
+private fun ExtraTempsCard(temps: List<ExtraTemp>, warning: Float) {
+    val scale = LocalHeatScale.current
+    SectionCard(title = stringResource(R.string.section_extra), subtitle = stringResource(R.string.section_extra_body)) {
+        temps.sortedByDescending { it.celsius }.forEach { temp ->
+            val color = if (temp.celsius >= warning) MaterialTheme.colorScheme.error else scale.color(temp.celsius)
+            Column(verticalArrangement = Arrangement.spacedBy(6.dp)) {
+                Row(verticalAlignment = Alignment.CenterVertically) {
+                    Column(Modifier.weight(1f)) {
+                        Text(temp.name, style = MaterialTheme.typography.titleSmall, maxLines = 1, overflow = TextOverflow.Ellipsis)
+                        Text(
+                            listOfNotNull(
+                                stringResource(
+                                    when (temp.source) {
+                                        ExtraSource.Hal -> R.string.extra_hal
+                                        ExtraSource.Hwmon -> R.string.extra_hwmon
+                                        ExtraSource.PowerSupply -> R.string.extra_supply
+                                    },
+                                ),
+                                temp.kind,
+                            ).joinToString(" · "),
+                            style = MaterialTheme.typography.labelMedium,
+                            color = MaterialTheme.colorScheme.onSurfaceVariant,
+                        )
+                    }
+                    Text(celsius(temp.celsius), style = MaterialTheme.typography.titleLarge, color = color)
+                }
+                HeatBar(scale.fraction(temp.celsius), color)
             }
         }
     }

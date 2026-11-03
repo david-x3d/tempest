@@ -37,10 +37,12 @@ import androidx.lifecycle.viewmodel.compose.viewModel
 import io.github.davidx3d.tempest.R
 import io.github.davidx3d.tempest.data.device.CpuCluster
 import io.github.davidx3d.tempest.data.device.DeviceInfo
+import io.github.davidx3d.tempest.data.device.NameSource
 import io.github.davidx3d.tempest.data.device.LiveChip
 import io.github.davidx3d.tempest.data.device.SocVendor
 import io.github.davidx3d.tempest.data.thermal.CpuCore
-import io.github.davidx3d.tempest.data.thermal.RootState
+import io.github.davidx3d.tempest.data.privilege.Access
+import io.github.davidx3d.tempest.data.privilege.PrivilegeMode
 import io.github.davidx3d.tempest.ui.bytes
 import io.github.davidx3d.tempest.ui.celsius
 import io.github.davidx3d.tempest.ui.clock
@@ -81,12 +83,12 @@ fun CpuScreen(
         }
 
         item { SocCard(info, state) }
-        item { CoresCard(state.cores, info.coreCount) }
+        item { CoresCard(state.cores, info.coreCount, state.live.coreLoadPercent) }
         if (info.clusters.isNotEmpty()) item { ClustersCard(info) }
         item { GpuCard(info, state.live) }
         item { MemoryCard(info, state.live) }
         item { DisplayCard(info) }
-        item { SystemCard(info, state.live, state.root) }
+        item { SystemCard(info, state.live, state.access) }
     }
 }
 
@@ -105,6 +107,7 @@ private fun SocCard(info: DeviceInfo, state: CpuUiState) {
                     soc.vendor.displayName.takeIf { soc.vendor != SocVendor.Unknown },
                     soc.code?.uppercase()?.takeIf { !soc.name.contains(it, ignoreCase = true) },
                     soc.process,
+                    stringResource(R.string.cpu_name_online).takeIf { soc.nameSource == NameSource.Online },
                 ).joinToString(" · ")
                 if (subtitle.isNotEmpty()) {
                     Text(subtitle, style = MaterialTheme.typography.bodyMedium, color = MaterialTheme.colorScheme.onSurfaceVariant)
@@ -120,6 +123,15 @@ private fun SocCard(info: DeviceInfo, state: CpuUiState) {
             maxKhz?.let { TonalPill(stringResource(R.string.cpu_up_to, clock(it))) }
             info.abis.firstOrNull()?.let { TonalPill(it) }
         }
+        state.live.cpuLoadPercent?.let { load ->
+            Column(verticalArrangement = Arrangement.spacedBy(6.dp)) {
+                Row {
+                    Text(stringResource(R.string.cpu_load), style = MaterialTheme.typography.titleSmall, modifier = Modifier.weight(1f))
+                    Text(formatUnit(R.string.unit_percent, load.toFloat(), 0), style = MaterialTheme.typography.titleSmall)
+                }
+                HeatBar(load / 100f, MaterialTheme.colorScheme.secondary)
+            }
+        }
         state.clockLoad?.let { load ->
             Column(verticalArrangement = Arrangement.spacedBy(6.dp)) {
                 Row {
@@ -134,13 +146,13 @@ private fun SocCard(info: DeviceInfo, state: CpuUiState) {
 
 /** Two cores per row: a small wavy ring for current/max clock and the live frequency. */
 @Composable
-private fun CoresCard(cores: List<CpuCore>, coreCount: Int) {
+private fun CoresCard(cores: List<CpuCore>, coreCount: Int, loads: Map<Int, Int>) {
     val byIndex = cores.associateBy { it.index }
     val indices = (0 until maxOf(coreCount, (cores.maxOfOrNull { it.index } ?: -1) + 1)).toList()
     SectionCard(title = stringResource(R.string.cpu_cores_title), subtitle = stringResource(R.string.cpu_cores_body)) {
         indices.chunked(2).forEach { row ->
             Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
-                row.forEach { index -> CoreTile(index, byIndex[index], Modifier.weight(1f)) }
+                row.forEach { index -> CoreTile(index, byIndex[index], loads[index], Modifier.weight(1f)) }
                 if (row.size == 1) Spacer(Modifier.weight(1f))
             }
         }
@@ -148,7 +160,7 @@ private fun CoresCard(cores: List<CpuCore>, coreCount: Int) {
 }
 
 @Composable
-private fun CoreTile(index: Int, core: CpuCore?, modifier: Modifier = Modifier) {
+private fun CoreTile(index: Int, core: CpuCore?, loadPercent: Int?, modifier: Modifier = Modifier) {
     val fraction = core?.let { c -> (c.currentKhz.toFloat() / (c.maxKhz?.takeIf { it > 0 } ?: c.currentKhz)).coerceIn(0f, 1f) } ?: 0f
     val shown by animateFloatAsState(fraction, MaterialTheme.motionScheme.defaultSpatialSpec(), label = "core$index")
     val armed = rememberWaveArmed()
@@ -178,6 +190,13 @@ private fun CoreTile(index: Int, core: CpuCore?, modifier: Modifier = Modifier) 
                     style = MaterialTheme.typography.titleMedium,
                     maxLines = 1,
                 )
+                if (core != null && loadPercent != null) {
+                    Text(
+                        formatUnit(R.string.unit_percent, loadPercent.toFloat(), 0),
+                        style = MaterialTheme.typography.labelSmall,
+                        color = MaterialTheme.colorScheme.onSurfaceVariant,
+                    )
+                }
             }
         }
     }
@@ -313,7 +332,7 @@ private fun DisplayCard(info: DeviceInfo) {
 }
 
 @Composable
-private fun SystemCard(info: DeviceInfo, live: LiveChip, root: RootState) {
+private fun SystemCard(info: DeviceInfo, live: LiveChip, access: Access) {
     val s = info.system
     SectionCard(title = stringResource(R.string.system_title)) {
         InfoRow(stringResource(R.string.system_model), "${s.brand.replaceFirstChar { it.uppercase() }} ${s.model}")
@@ -327,7 +346,16 @@ private fun SystemCard(info: DeviceInfo, live: LiveChip, root: RootState) {
         InfoRow(stringResource(R.string.system_treble), s.treble?.let { stringResource(if (it) R.string.value_yes else R.string.value_no) })
         InfoRow(stringResource(R.string.system_slot), s.abSlot)
         InfoRow(stringResource(R.string.system_vm), s.javaVm)
-        InfoRow(stringResource(R.string.system_root), stringResource(if (root == RootState.Granted) R.string.value_yes else R.string.value_no))
+        InfoRow(
+            stringResource(R.string.system_root),
+            stringResource(
+                when {
+                    !access.granted -> R.string.value_no
+                    access.mode == PrivilegeMode.Shizuku -> R.string.access_shizuku
+                    else -> R.string.access_root
+                },
+            ),
+        )
         if (live.uptimeMillis > 0) InfoRow(stringResource(R.string.system_uptime), uptime(live.uptimeMillis))
     }
 }
