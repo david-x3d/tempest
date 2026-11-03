@@ -5,6 +5,7 @@ import android.content.Context
 import android.content.Intent
 import android.content.IntentFilter
 import android.os.BatteryManager
+import android.os.Build
 import androidx.core.content.ContextCompat
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.channels.awaitClose
@@ -87,16 +88,26 @@ class BatteryRepository(private val context: Context, scope: CoroutineScope) {
                 BatteryManager.BATTERY_HEALTH_UNSPECIFIED_FAILURE -> BatteryHealth.Failure
                 else -> BatteryHealth.Unknown
             },
+            chargeCounterMah = readProperty(BatteryManager.BATTERY_PROPERTY_CHARGE_COUNTER)
+                ?.takeIf { it > 0 }?.let { it / 1000 },
+            cycleCount = if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.UPSIDE_DOWN_CAKE) {
+                intent.getIntExtra(BatteryManager.EXTRA_CYCLE_COUNT, -1).takeIf { it >= 0 }
+            } else {
+                null
+            },
+            technology = intent.getStringExtra(BatteryManager.EXTRA_TECHNOLOGY)?.takeIf { it.isNotBlank() },
+            timeToFullMillis = batteryManager?.computeChargeTimeRemaining()?.takeIf { it > 0 },
         )
     }
 
     /** CURRENT_NOW is specified in microamps, but some vendors report milliamps. */
     private fun readCurrentMilliamps(): Int? {
-        val raw = batteryManager?.getIntProperty(BatteryManager.BATTERY_PROPERTY_CURRENT_NOW)
-            ?: return null
-        if (raw == Int.MIN_VALUE) return null
+        val raw = readProperty(BatteryManager.BATTERY_PROPERTY_CURRENT_NOW) ?: return null
         return if (abs(raw) > MICROAMP_THRESHOLD) raw / 1000 else raw
     }
+
+    private fun readProperty(id: Int): Int? =
+        batteryManager?.getIntProperty(id)?.takeIf { it != Int.MIN_VALUE }
 
     private companion object {
         const val CURRENT_POLL_MS = 2_000L
