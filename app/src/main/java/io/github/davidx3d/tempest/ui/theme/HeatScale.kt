@@ -1,25 +1,29 @@
 package io.github.davidx3d.tempest.ui.theme
 
+import androidx.compose.runtime.staticCompositionLocalOf
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.lerp
+import io.github.davidx3d.tempest.data.settings.HeatLevels
 
-enum class HeatBand { Cool, Warm, Hot }
+enum class HeatBand { Cold, Cool, Warm, Hot, Ultra }
 
-/** Maps a temperature onto the cool blue → warm orange → hot red scale used everywhere. */
-object HeatScale {
-    const val MIN = 15f
-    const val MAX = 65f
-    private const val WARM_FROM = 33f
-    private const val HOT_FROM = 42f
+/**
+ * Maps a temperature onto the colour scale used everywhere, from icy blue through orange to a
+ * deep red. The colour stops sit on the user's own heat levels, so "hot" always looks hot.
+ */
+class HeatScale(val levels: HeatLevels) {
+
+    val min = levels.coldBelow - 10f
+    val max = levels.ultraFrom + 12f
 
     private val stops = listOf(
-        15f to Color(0xFF3D6BFF),
-        25f to Color(0xFF1E9BF0),
-        31f to Color(0xFF14B8C8),
-        34f to Color(0xFFFFA726),
-        40f to Color(0xFFFF7A1F),
-        48f to Color(0xFFE5392B),
-        65f to Color(0xFFB0102A),
+        min to Color(0xFF5B5BFF),
+        levels.coldBelow to Color(0xFF1E88F0),
+        levels.warmFrom - 1.5f to Color(0xFF14B8C8),
+        levels.warmFrom + 1f to Color(0xFFFFB02E),
+        levels.hotFrom to Color(0xFFFF7A1F),
+        levels.ultraFrom to Color(0xFFE5392B),
+        max to Color(0xFF9C0F3F),
     )
 
     fun color(celsius: Float): Color {
@@ -32,13 +36,15 @@ object HeatScale {
         return stops.last().second
     }
 
-    /** 0 at [MIN], 1 at [MAX]. */
-    fun fraction(celsius: Float): Float = ((celsius - MIN) / (MAX - MIN)).coerceIn(0f, 1f)
+    /** 0 at [min], 1 at [max]. */
+    fun fraction(celsius: Float): Float = ((celsius - min) / (max - min)).coerceIn(0f, 1f)
 
     fun band(celsius: Float): HeatBand = when {
-        celsius >= HOT_FROM -> HeatBand.Hot
-        celsius >= WARM_FROM -> HeatBand.Warm
-        else -> HeatBand.Cool
+        celsius >= levels.ultraFrom -> HeatBand.Ultra
+        celsius >= levels.hotFrom -> HeatBand.Hot
+        celsius >= levels.warmFrom -> HeatBand.Warm
+        celsius >= levels.coldBelow -> HeatBand.Cool
+        else -> HeatBand.Cold
     }
 
     /** Colour stops for a vertical gradient over the value range [low]..[high] (top = high). */
@@ -50,3 +56,5 @@ object HeatScale {
         }.toTypedArray()
     }
 }
+
+val LocalHeatScale = staticCompositionLocalOf { HeatScale(HeatLevels()) }
