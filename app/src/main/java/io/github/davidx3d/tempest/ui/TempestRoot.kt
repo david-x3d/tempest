@@ -10,6 +10,8 @@ import androidx.compose.animation.togetherWith
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.rounded.BatteryFull
 import androidx.compose.material.icons.rounded.DeviceThermostat
+import androidx.compose.material.icons.rounded.Memory
+import androidx.compose.material.icons.rounded.Sensors
 import androidx.compose.material.icons.rounded.Settings
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
@@ -28,12 +30,16 @@ import androidx.compose.ui.platform.LocalHapticFeedback
 import androidx.compose.ui.res.stringResource
 import io.github.davidx3d.tempest.R
 import io.github.davidx3d.tempest.ui.battery.BatteryScreen
+import io.github.davidx3d.tempest.ui.cpu.CpuScreen
+import io.github.davidx3d.tempest.ui.sensors.SensorsScreen
 import io.github.davidx3d.tempest.ui.settings.SettingsScreen
 import io.github.davidx3d.tempest.ui.thermal.ThermalScreen
 
 enum class Destination(@StringRes val label: Int, val icon: ImageVector) {
     Battery(R.string.nav_battery, Icons.Rounded.BatteryFull),
     Thermal(R.string.nav_thermal, Icons.Rounded.DeviceThermostat),
+    Cpu(R.string.nav_cpu, Icons.Rounded.Memory),
+    Sensors(R.string.nav_sensors, Icons.Rounded.Sensors),
     Settings(R.string.nav_settings, Icons.Rounded.Settings),
 }
 
@@ -71,6 +77,8 @@ fun TempestRoot() {
             when (destination) {
                 Destination.Battery -> BatteryScreen(padding)
                 Destination.Thermal -> ThermalScreen(padding)
+                Destination.Cpu -> CpuScreen(padding)
+                Destination.Sensors -> SensorsScreen(padding)
                 Destination.Settings -> SettingsScreen(padding)
             }
         }

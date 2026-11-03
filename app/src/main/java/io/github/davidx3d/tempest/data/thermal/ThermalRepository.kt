@@ -138,7 +138,7 @@ class ThermalRepository(
         const val CPU_DIR = "/sys/devices/system/cpu"
         const val ZONE = "thermal_zone"
         const val COOLING = "cooling_device"
-        const val POLL_MS = 3_000L
+        const val POLL_MS = 2_000L
         const val HEADROOM_FORECAST_S = 10
         const val ROOT_SCRIPT =
             "for f in /sys/class/thermal/thermal_zone*/type /sys/class/thermal/thermal_zone*/temp " +

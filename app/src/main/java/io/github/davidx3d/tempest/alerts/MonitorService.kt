@@ -6,6 +6,7 @@ import android.content.Intent
 import android.content.pm.ServiceInfo
 import android.os.Build
 import android.os.IBinder
+import android.os.SystemClock
 import androidx.core.app.ServiceCompat
 import androidx.core.content.ContextCompat
 import io.github.davidx3d.tempest.TempestApp
@@ -52,10 +53,12 @@ class MonitorService : Service() {
                 notifier.monitorNotification(battery, soc, settings.fahrenheit).let {
                     getSystemService(android.app.NotificationManager::class.java).notify(AlertNotifier.MONITOR_ID, it)
                 }
-                if (watcher.check(AlertSource.Battery, battery, settings.batteryThreshold)) {
+                val repeat = settings.alertRepeatMinutes * 60_000L
+                val now = SystemClock.elapsedRealtime()
+                if (watcher.check(AlertSource.Battery, battery, settings.batteryThreshold, repeat, now)) {
                     notifier.showAlert(AlertSource.Battery, battery!!, settings.batteryThreshold, settings.fahrenheit)
                 }
-                if (watcher.check(AlertSource.Soc, soc, settings.socThreshold)) {
+                if (watcher.check(AlertSource.Soc, soc, settings.socThreshold, repeat, now)) {
                     notifier.showAlert(AlertSource.Soc, soc!!, settings.socThreshold, settings.fahrenheit)
                 }
             }

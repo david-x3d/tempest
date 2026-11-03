@@ -58,6 +58,7 @@ import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.FilledTonalButton
+import androidx.compose.material3.FilterChip
 import androidx.compose.material3.SegmentedButton
 import androidx.compose.material3.SegmentedButtonDefaults
 import androidx.compose.material3.SingleChoiceSegmentedButtonRow
@@ -110,7 +111,15 @@ fun SettingsScreen(
                 )
             }
         }
-        item { AlertsCard(state.settings.alertsEnabled, viewModel::setAlertsEnabled) }
+        item {
+            AlertsCard(
+                enabled = state.settings.alertsEnabled,
+                onChange = viewModel::setAlertsEnabled,
+                repeatMinutes = state.settings.alertRepeatMinutes,
+                onRepeatChange = viewModel::setAlertRepeatMinutes,
+                onTest = viewModel::sendTestAlert,
+            )
+        }
         item { RootCard(state.settings.useRoot, state.root, viewModel::setUseRoot) }
         item { LanguageCard(state.language, viewModel::setLanguage) }
         item { AboutCard() }
@@ -196,6 +205,20 @@ private fun LevelsCard(levels: HeatLevels, onCommit: (HeatLevels) -> Unit) {
                     ),
                 ),
         )
+        Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+            listOf(R.string.preset_default, R.string.preset_gaming, R.string.preset_careful)
+                .zip(HeatLevels.PRESETS)
+                .forEach { (label, preset) ->
+                    FilterChip(
+                        selected = draft == preset,
+                        onClick = {
+                            draft = preset
+                            onCommit(preset)
+                        },
+                        label = { Text(stringResource(label)) },
+                    )
+                }
+        }
         CompositionLocalProvider(LocalHeatScale provides preview) {
             ThresholdSlider(stringResource(R.string.level_cold_below), draft.coldBelow, range, onCommit = {
                 draft = draft.copy(coldBelow = it).sanitized(); onCommit(draft)
@@ -218,7 +241,13 @@ private fun LevelsCard(levels: HeatLevels, onCommit: (HeatLevels) -> Unit) {
  * separate grant on Android 14+, which only the system settings page can give.
  */
 @Composable
-private fun AlertsCard(enabled: Boolean, onChange: (Boolean) -> Unit) {
+private fun AlertsCard(
+    enabled: Boolean,
+    onChange: (Boolean) -> Unit,
+    repeatMinutes: Int,
+    onRepeatChange: (Int) -> Unit,
+    onTest: (Context) -> Unit,
+) {
     val context = LocalContext.current
     val haptics = LocalHapticFeedback.current
     var notificationsAllowed by remember { mutableStateOf(NotificationManagerCompat.from(context).areNotificationsEnabled()) }
@@ -301,6 +330,44 @@ private fun AlertsCard(enabled: Boolean, onChange: (Boolean) -> Unit) {
                     }) { Text(stringResource(R.string.settings_fullscreen_allow)) }
                 }
             }
+        }
+        if (enabled && notificationsAllowed) {
+            Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
+                Text(stringResource(R.string.settings_alert_repeat), style = MaterialTheme.typography.titleMedium)
+                Text(
+                    stringResource(R.string.settings_alert_repeat_body),
+                    style = MaterialTheme.typography.bodySmall,
+                    color = MaterialTheme.colorScheme.onSurfaceVariant,
+                )
+                val options = Settings.REPEAT_OPTIONS
+                SingleChoiceSegmentedButtonRow(Modifier.fillMaxWidth()) {
+                    options.forEachIndexed { i, minutes ->
+                        SegmentedButton(
+                            selected = repeatMinutes == minutes,
+                            onClick = {
+                                haptics.performHapticFeedback(HapticFeedbackType.SegmentTick)
+                                onRepeatChange(minutes)
+                            },
+                            shape = SegmentedButtonDefaults.itemShape(i, options.size),
+                        ) {
+                            Text(
+                                if (minutes == 0) {
+                                    stringResource(R.string.settings_alert_repeat_off)
+                                } else {
+                                    stringResource(R.string.duration_minutes, minutes)
+                                },
+                            )
+                        }
+                    }
+                }
+            }
+            FilledTonalButton(
+                onClick = {
+                    haptics.performHapticFeedback(HapticFeedbackType.Confirm)
+                    onTest(context)
+                },
+                modifier = Modifier.fillMaxWidth(),
+            ) { Text(stringResource(R.string.settings_alert_test)) }
         }
     }
 }

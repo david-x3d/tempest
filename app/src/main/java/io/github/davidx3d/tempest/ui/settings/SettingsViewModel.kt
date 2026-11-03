@@ -1,5 +1,6 @@
 package io.github.davidx3d.tempest.ui.settings
 
+import android.content.Context
 import androidx.appcompat.app.AppCompatDelegate
 import androidx.core.os.LocaleListCompat
 import androidx.lifecycle.ViewModel
@@ -8,6 +9,9 @@ import androidx.lifecycle.viewModelScope
 import androidx.lifecycle.viewmodel.initializer
 import androidx.lifecycle.viewmodel.viewModelFactory
 import io.github.davidx3d.tempest.TempestApp
+import io.github.davidx3d.tempest.alerts.AlertNotifier
+import io.github.davidx3d.tempest.alerts.AlertSource
+import io.github.davidx3d.tempest.data.battery.BatteryRepository
 import io.github.davidx3d.tempest.data.settings.HeatLevels
 import io.github.davidx3d.tempest.data.settings.Settings
 import io.github.davidx3d.tempest.data.settings.SettingsRepository
@@ -34,6 +38,7 @@ data class SettingsUiState(
 class SettingsViewModel(
     private val repository: SettingsRepository,
     thermal: ThermalRepository,
+    private val battery: BatteryRepository,
 ) : ViewModel() {
 
     private val language = MutableStateFlow(currentLanguage())
@@ -55,6 +60,18 @@ class SettingsViewModel(
 
     fun setLevels(value: HeatLevels) = viewModelScope.launch { repository.setLevels(value) }
 
+    fun setAlertRepeatMinutes(value: Int) = viewModelScope.launch { repository.setAlertRepeatMinutes(value) }
+
+    /** Shows the real big alert with the current battery temperature, so you know what to expect. */
+    fun sendTestAlert(context: Context) {
+        val settings = repository.settings.value
+        val celsius = battery.snapshot.value?.temperatureCelsius ?: settings.batteryThreshold
+        AlertNotifier(context).apply {
+            ensureChannels()
+            showAlert(AlertSource.Battery, celsius, settings.batteryThreshold, settings.fahrenheit)
+        }
+    }
+
     /** Recreates the activity in the new language; Android 13+ also shows it in system settings. */
     fun setLanguage(value: AppLanguage) {
         language.value = value
@@ -72,7 +89,7 @@ class SettingsViewModel(
         val Factory = viewModelFactory {
             initializer {
                 val container = (this[APPLICATION_KEY] as TempestApp).container
-                SettingsViewModel(container.settings, container.thermal)
+                SettingsViewModel(container.settings, container.thermal, container.battery)
             }
         }
     }

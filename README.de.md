@@ -22,7 +22,7 @@ umso stärker schwingt, je heißer es wird. Gebaut mit Jetpack Compose und Mater
 |:---:|:---:|:---:|
 | <img src="docs/screenshots/battery.png" width="200"> | <img src="docs/screenshots/sensors.png" width="200"> | <img src="docs/screenshots/settings.png" width="200"> |
 
-<sub>Im Android-Emulator aufgenommen, deshalb zeigt die Sensoren-Seite nur dessen einzige Zone.</sub>
+<sub>Im Android-Emulator aufgenommen, deshalb zeigt die Thermik-Seite nur dessen einzige Zone.</sub>
 
 ## Funktionen
 
@@ -44,6 +44,14 @@ umso stärker schwingt, je heißer es wird. Gebaut mit Jetpack Compose und Mater
   haptischem Feedback beim Überschreiten
 - **Große Hintergrund-Alarme**: optionale Überwachung mit Heads-up-Benachrichtigung in
   riesiger Schrift und, wenn erlaubt, Vollbild-Alarm auch auf dem Sperrbildschirm
+- **CPU-Tab** im Stil von CPU-Z: Chipname mit flachem Emblem je Hersteller (Snapdragon,
+  Dimensity, Exynos, Tensor, Kirin, Unisoc), Live-Takt jedes Kerns, Cluster mit Kerntypen
+  (Cortex-X4, Cortex-A720 …), Governor, GPU-Renderer mit OpenGL-ES- und Vulkan-Version,
+  GPU-Auslastung und -Takt wo der Treiber es erlaubt, RAM, Swap, Speicherplatz, Display und System
+- **Sensoren-Tab**: alle Sensoren des Handys mit Live-Werten, kleinem Live-Graphen, Filtern
+  (Bewegung, Position, Umgebung) und komplettem Datenblatt per Antippen
+- **Mehr bei Alarmen**: Test-Alarm, Erinnerung alle 2, 5 oder 10 Minuten solange es heiß bleibt,
+  und Vorlagen (Standard, Gaming, Vorsichtig) für die Temperaturstufen
 - **Schnelleinstellungs-Kachel**, **°C oder °F** und **CSV-Export** des Verlaufs
 - **Material 3 Expressive**: `MaterialShapes` mit Shape-Morphing (Cookie, Sunny, Pill, Burst),
   `CircularWavyProgressIndicator` und `LinearWavyProgressIndicator`, Federanimationen mit
@@ -86,8 +94,8 @@ Einstellungen in DataStore, Verlauf im Speicher), je Screen kombiniert ein `View
 zu einem UI-State, und Compose stellt ihn dar.
 
 ```
-data/      battery · thermal (inkl. RootShell) · history · settings
-ui/        battery · thermal · settings · components · theme
+data/      battery · thermal (inkl. RootShell) · device · sensors · history · settings
+ui/        battery · thermal · cpu · sensors · settings · components · theme
 ```
 
 ## Lizenz

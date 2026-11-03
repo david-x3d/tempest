@@ -4,7 +4,7 @@
 
     <!-- Navigation -->
     <string name="nav_battery">Battery</string>
-    <string name="nav_thermal">Sensors</string>
+    <string name="nav_thermal">Thermal</string>
     <string name="nav_settings">Settings</string>
 
     <!-- Units and number formats. The number itself is formatted with the app locale. -->
@@ -172,5 +172,106 @@
     <plurals name="sensor_count">
         <item quantity="one">This phone has %d sensor</item>
         <item quantity="other">This phone has %d sensors</item>
+    </plurals>
+
+    <!-- 1.2: CPU, sensors and alert additions -->
+    <string name="nav_cpu">CPU</string>
+    <string name="nav_sensors">Sensors</string>
+    <string name="cpu_title">Chip</string>
+    <string name="cpu_up_to">Up to %1$s</string>
+    <string name="cpu_clock_load">Clock load</string>
+    <string name="cpu_cores_title">Cores</string>
+    <string name="cpu_cores_body">Live clock of every core. The ring shows how close it runs to its maximum.</string>
+    <string name="cpu_core_offline">Off</string>
+    <string name="cpu_clusters">Clusters</string>
+    <string name="cpu_cluster_cores">Cores %1$s</string>
+    <string name="cpu_core_generic">CPU core</string>
+    <string name="cpu_governor">Governor</string>
+    <string name="cpu_abi">Instruction sets</string>
+    <string name="gpu_title">GPU</string>
+    <string name="gpu_load">Load</string>
+    <string name="gpu_clock">Clock</string>
+    <string name="gpu_vendor">Vendor</string>
+    <string name="gpu_opengl">OpenGL</string>
+    <string name="gpu_vulkan">Vulkan</string>
+    <string name="memory_title">Memory</string>
+    <string name="memory_ram">RAM</string>
+    <string name="memory_available">Available</string>
+    <string name="memory_cached">Cached</string>
+    <string name="memory_swap">Swap / zRAM</string>
+    <string name="memory_used">%1$s of %2$s</string>
+    <string name="storage_title">Storage</string>
+    <string name="display_title">Display</string>
+    <string name="display_resolution">Resolution</string>
+    <string name="display_resolution_value">%1$d × %2$d</string>
+    <string name="display_density">Density</string>
+    <string name="display_size">Size</string>
+    <string name="display_refresh">Refresh rate</string>
+    <string name="display_refresh_value">%1$s (max %2$s)</string>
+    <string name="display_hdr">HDR</string>
+    <string name="unit_dpi">%1$d\u00A0dpi</string>
+    <string name="unit_hz">%1$s\u00A0Hz</string>
+    <string name="unit_inch">%1$s″</string>
+    <string name="value_yes">Yes</string>
+    <string name="value_no">No</string>
+    <string name="system_title">System</string>
+    <string name="system_model">Model</string>
+    <string name="system_device">Device · board</string>
+    <string name="system_android">Android</string>
+    <string name="system_android_value">%1$s (API %2$d)</string>
+    <string name="system_patch">Security patch</string>
+    <string name="system_build">Build</string>
+    <string name="system_kernel">Kernel</string>
+    <string name="system_baseband">Baseband</string>
+    <string name="system_bootloader">Bootloader</string>
+    <string name="system_treble">Project Treble</string>
+    <string name="system_slot">Active slot</string>
+    <string name="system_vm">Java VM</string>
+    <string name="system_root">Root</string>
+    <string name="system_uptime">Uptime</string>
+    <string name="duration_days_hours_minutes">%1$d d %2$d h %3$d min</string>
+    <string name="sensors_title">Sensors</string>
+    <string name="sensors_filter_all">All</string>
+    <string name="sensor_waiting">Waiting for data…</string>
+    <string name="sensor_vendor">Vendor</string>
+    <string name="sensor_version">Version</string>
+    <string name="sensor_range">Range</string>
+    <string name="sensor_resolution">Resolution</string>
+    <string name="sensor_power">Power draw</string>
+    <string name="sensor_rate">Max rate</string>
+    <string name="sensor_on_change">On change</string>
+    <string name="sensor_wakeup">Wake-up sensor</string>
+    <string name="sensor_type">Type</string>
+    <string name="sensor_type_accelerometer">Accelerometer</string>
+    <string name="sensor_type_accelerometer_raw">Accelerometer (raw)</string>
+    <string name="sensor_type_gyroscope">Gyroscope</string>
+    <string name="sensor_type_gyroscope_raw">Gyroscope (raw)</string>
+    <string name="sensor_type_magnetic">Magnetic field</string>
+    <string name="sensor_type_magnetic_raw">Magnetic field (raw)</string>
+    <string name="sensor_type_gravity">Gravity</string>
+    <string name="sensor_type_linear">Linear acceleration</string>
+    <string name="sensor_type_rotation">Rotation</string>
+    <string name="sensor_type_game_rotation">Game rotation</string>
+    <string name="sensor_type_geo_rotation">Geomagnetic rotation</string>
+    <string name="sensor_type_proximity">Proximity</string>
+    <string name="sensor_type_step_counter">Step counter</string>
+    <string name="sensor_type_step_detector">Step detector</string>
+    <string name="sensor_type_significant_motion">Significant motion</string>
+    <string name="sensor_type_heart_rate">Heart rate</string>
+    <string name="sensor_type_hinge">Hinge angle</string>
+    <string name="sensor_group_motion">Motion</string>
+    <string name="sensor_group_position">Position</string>
+    <string name="sensor_group_environment">Environment</string>
+    <string name="sensor_group_other">Other</string>
+    <string name="settings_alert_repeat">Remind me</string>
+    <string name="settings_alert_repeat_body">Alert again while it stays above the limit.</string>
+    <string name="settings_alert_repeat_off">Once</string>
+    <string name="settings_alert_test">Send test alert</string>
+    <string name="preset_default">Default</string>
+    <string name="preset_gaming">Gaming</string>
+    <string name="preset_careful">Careful</string>
+    <plurals name="cpu_core_count">
+        <item quantity="one">%d core</item>
+        <item quantity="other">%d cores</item>
     </plurals>
 </resources>

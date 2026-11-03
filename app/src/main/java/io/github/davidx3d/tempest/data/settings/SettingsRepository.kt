@@ -4,6 +4,7 @@ import android.content.Context
 import androidx.datastore.preferences.core.booleanPreferencesKey
 import androidx.datastore.preferences.core.edit
 import androidx.datastore.preferences.core.floatPreferencesKey
+import androidx.datastore.preferences.core.intPreferencesKey
 import androidx.datastore.preferences.preferencesDataStore
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.flow.SharingStarted
@@ -32,6 +33,13 @@ data class HeatLevels(
     companion object {
         const val MIN_GAP = 3f
         val RANGE = 0f..90f
+
+        /** Lets the levels sit higher for gaming or lower for a phone that should stay cool. */
+        val PRESETS = listOf(
+            HeatLevels(),
+            HeatLevels(coldBelow = 22f, warmFrom = 36f, hotFrom = 44f, ultraFrom = 52f),
+            HeatLevels(coldBelow = 18f, warmFrom = 30f, hotFrom = 37f, ultraFrom = 44f),
+        )
     }
 }
 
@@ -42,8 +50,11 @@ data class Settings(
     val levels: HeatLevels = HeatLevels(),
     val alertsEnabled: Boolean = false,
     val fahrenheit: Boolean = false,
+    /** Re-alert every N minutes while still above the threshold; 0 alerts once per crossing. */
+    val alertRepeatMinutes: Int = 0,
 ) {
     companion object {
+        val REPEAT_OPTIONS = listOf(0, 2, 5, 10)
         const val DEFAULT_BATTERY_THRESHOLD = 40f
         const val DEFAULT_SOC_THRESHOLD = 45f
         val BATTERY_RANGE = 30f..60f
@@ -73,6 +84,7 @@ class SettingsRepository(context: Context, scope: CoroutineScope) {
                 ).sanitized(),
                 alertsEnabled = prefs[ALERTS_ENABLED] ?: false,
                 fahrenheit = prefs[FAHRENHEIT] ?: false,
+                alertRepeatMinutes = prefs[ALERT_REPEAT] ?: 0,
             )
         }
         .stateIn(scope, SharingStarted.Eagerly, Settings())
@@ -86,6 +98,8 @@ class SettingsRepository(context: Context, scope: CoroutineScope) {
     suspend fun setAlertsEnabled(value: Boolean) = store.edit { it[ALERTS_ENABLED] = value }
 
     suspend fun setFahrenheit(value: Boolean) = store.edit { it[FAHRENHEIT] = value }
+
+    suspend fun setAlertRepeatMinutes(value: Int) = store.edit { it[ALERT_REPEAT] = value }
 
     suspend fun setLevels(levels: HeatLevels) = store.edit {
         val clean = levels.sanitized()
@@ -105,5 +119,6 @@ class SettingsRepository(context: Context, scope: CoroutineScope) {
         val ULTRA_FROM = floatPreferencesKey("level_ultra_from")
         val ALERTS_ENABLED = booleanPreferencesKey("alerts_enabled")
         val FAHRENHEIT = booleanPreferencesKey("fahrenheit")
+        val ALERT_REPEAT = intPreferencesKey("alert_repeat_minutes")
     }
 }

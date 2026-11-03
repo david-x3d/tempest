@@ -56,3 +56,21 @@ fun formatTemperature(context: Context, celsius: Float, fahrenheit: Boolean, fra
         context.getString(R.string.unit_celsius, formatNumber(celsius, locale, fractionDigits))
     }
 }
+
+/** "2,84 GHz" from 1 GHz upwards, "800 MHz" below. */
+@Composable
+@ReadOnlyComposable
+fun clock(khz: Long): String {
+    val ghz = khz / 1_000_000f
+    return if (ghz >= 1f) {
+        stringResource(R.string.unit_ghz, formatNumber(ghz, currentLocale(), 2))
+    } else {
+        stringResource(R.string.unit_mhz, formatNumber(khz / 1000f, currentLocale(), 0))
+    }
+}
+
+/** "7.45 GB", localized by the system formatter. */
+@Composable
+@ReadOnlyComposable
+fun bytes(value: Long): String =
+    android.text.format.Formatter.formatFileSize(androidx.compose.ui.platform.LocalContext.current, value)

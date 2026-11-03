@@ -22,7 +22,7 @@ Built with Jetpack Compose and Material 3 Expressive.
 |:---:|:---:|:---:|
 | <img src="docs/screenshots/battery.png" width="200"> | <img src="docs/screenshots/sensors.png" width="200"> | <img src="docs/screenshots/settings.png" width="200"> |
 
-<sub>Taken on the Android emulator, so the sensors page only shows the emulator's single zone.</sub>
+<sub>Taken on the Android emulator, so the thermal page only shows the emulator's single zone.</sub>
 
 ## Features
 
@@ -44,6 +44,14 @@ Built with Jetpack Compose and Material 3 Expressive.
   haptic feedback when they are crossed
 - **Big background alerts**: optional monitoring that posts a heads-up notification with the
   temperature in huge type and, if allowed, a full-screen alert over the lock screen
+- **CPU tab** in the spirit of CPU-Z: chip name with a flat emblem per maker (Snapdragon,
+  Dimensity, Exynos, Tensor, Kirin, Unisoc), live clock of every core, clusters with core types
+  (Cortex-X4, Cortex-A720 …), governor, GPU renderer with OpenGL ES and Vulkan versions, GPU load
+  and clock where the driver allows it, RAM, swap, storage, display and system details
+- **Sensors tab**: every sensor the phone has, with live values, a short live graph, filters
+  (motion, position, environment) and the full datasheet on tap
+- **Alert extras**: a test alert, reminders every 2, 5 or 10 minutes while it stays hot, and
+  presets (default, gaming, careful) for the heat levels
 - **Quick Settings tile**, **°C or °F**, and **CSV export** of the history
 - **Material 3 Expressive**: `MaterialShapes` with shape morphing (Cookie, Sunny, Pill, Burst),
   `CircularWavyProgressIndicator` and `LinearWavyProgressIndicator`, `MotionScheme.expressive()`
@@ -86,8 +94,8 @@ settings in DataStore, in-memory history), one `ViewModel` per screen combines t
 state, and Compose renders it.
 
 ```
-data/      battery · thermal (incl. RootShell) · history · settings
-ui/        battery · thermal · settings · components · theme
+data/      battery · thermal (incl. RootShell) · device · sensors · history · settings
+ui/        battery · thermal · cpu · sensors · settings · components · theme
 ```
 
 ## License

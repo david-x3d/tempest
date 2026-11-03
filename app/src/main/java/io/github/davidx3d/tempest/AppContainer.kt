@@ -3,7 +3,8 @@ package io.github.davidx3d.tempest
 import android.content.Context
 import io.github.davidx3d.tempest.data.battery.BatteryRepository
 import io.github.davidx3d.tempest.data.history.HistoryRepository
-import io.github.davidx3d.tempest.data.sensors.EnvironmentRepository
+import io.github.davidx3d.tempest.data.device.DeviceRepository
+import io.github.davidx3d.tempest.data.sensors.SensorsRepository
 import io.github.davidx3d.tempest.data.settings.SettingsRepository
 import io.github.davidx3d.tempest.data.thermal.ThermalRepository
 import kotlinx.coroutines.CoroutineScope
@@ -17,7 +18,8 @@ class AppContainer(context: Context) {
 
     val settings = SettingsRepository(context, scope)
     val battery = BatteryRepository(context, scope)
-    val environment = EnvironmentRepository(context)
+    val sensors = SensorsRepository(context)
+    val device = DeviceRepository(context, scope)
     val thermal = ThermalRepository(context, settings.settings.map { it.useRoot }, scope)
     val history = HistoryRepository(
         scope = scope,

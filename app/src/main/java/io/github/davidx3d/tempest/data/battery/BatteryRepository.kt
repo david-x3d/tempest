@@ -17,6 +17,7 @@ import kotlinx.coroutines.flow.callbackFlow
 import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.flow.flow
 import kotlinx.coroutines.flow.stateIn
+import java.io.File
 import kotlin.math.abs
 
 /**
@@ -62,7 +63,7 @@ class BatteryRepository(private val context: Context, scope: CoroutineScope) {
         val scale = intent.getIntExtra(BatteryManager.EXTRA_SCALE, -1)
         return BatterySnapshot(
             temperatureCelsius = tenths / 10f,
-            voltageVolts = millivolts.takeIf { it > 0 }?.let { it / 1000f },
+            voltageVolts = normalizeVolts(millivolts) ?: readSysfsVolts() ?: millivolts.takeIf { it in 1..19 }?.toFloat(),
             currentMilliamps = readCurrentMilliamps(),
             levelPercent = if (level >= 0 && scale > 0) level * 100 / scale else null,
             status = when (intent.getIntExtra(BatteryManager.EXTRA_STATUS, -1)) {
@@ -98,6 +99,28 @@ class BatteryRepository(private val context: Context, scope: CoroutineScope) {
             technology = intent.getStringExtra(BatteryManager.EXTRA_TECHNOLOGY)?.takeIf { it.isNotBlank() },
             timeToFullMillis = batteryManager?.computeChargeTimeRemaining()?.takeIf { it > 0 },
         )
+    }
+
+    /**
+     * EXTRA_VOLTAGE should be millivolts, but some vendors send whole volts (e.g. 4) or microvolts.
+     * A Li-ion cell sits between roughly 2.5 and 5 V, so the magnitude tells the unit.
+     */
+    private fun normalizeVolts(raw: Int): Float? = when {
+        raw <= 0 -> null
+        raw < 20 -> null // whole volts carry no useful precision, sysfs is better
+        raw < 100_000 -> raw / 1000f
+        else -> raw / 1_000_000f
+    }
+
+    /** voltage_now in microvolts; readable without root on most phones. */
+    private fun readSysfsVolts(): Float? = runCatching {
+        File("/sys/class/power_supply/battery/voltage_now").readText().trim().toLong()
+    }.getOrNull()?.takeIf { it > 0 }?.let { uv ->
+        when {
+            uv > 100_000 -> uv / 1_000_000f
+            uv > 1_000 -> uv / 1000f
+            else -> null
+        }
     }
 
     /** CURRENT_NOW is specified in microamps, but some vendors report milliamps. */

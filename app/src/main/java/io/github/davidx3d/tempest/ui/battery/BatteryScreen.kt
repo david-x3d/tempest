@@ -15,7 +15,7 @@ import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.rounded.BatteryChargingFull
 import androidx.compose.material.icons.rounded.Bolt
 import androidx.compose.material.icons.rounded.ElectricalServices
-import androidx.compose.material.icons.rounded.Favorite
+import androidx.compose.material.icons.rounded.HealthAndSafety
 import androidx.compose.material.icons.rounded.Power
 import androidx.compose.material.icons.rounded.Speed
 import androidx.compose.material.icons.rounded.Autorenew
@@ -165,7 +165,7 @@ private fun StatsGrid(snapshot: BatterySnapshot) {
             ),
         )
         snapshot.timeToFullMillis?.let { add(Stat(stringResource(R.string.battery_time_to_full), duration(it), Icons.Rounded.Timer, MaterialShapes.Clover8Leaf, 1)) }
-        add(Stat(stringResource(R.string.battery_health), stringResource(snapshot.health.label()), Icons.Rounded.Favorite, MaterialShapes.Heart, 1))
+        add(Stat(stringResource(R.string.battery_health), stringResource(snapshot.health.label()), Icons.Rounded.HealthAndSafety, MaterialShapes.Cookie12Sided, if (snapshot.health == BatteryHealth.Good) 2 else 1))
         snapshot.cycleCount?.let { add(Stat(stringResource(R.string.battery_cycles), formatNumber(it.toFloat(), locale, 0), Icons.Rounded.Autorenew, MaterialShapes.Flower, 2)) }
         snapshot.technology?.let { add(Stat(stringResource(R.string.battery_technology), it, Icons.Rounded.Science, MaterialShapes.Gem, 0)) }
     }
