@@ -1,0 +1,107 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="app_name" translatable="false">Tempest</string>
+
+    <!-- Navigation -->
+    <string name="nav_battery">Battery</string>
+    <string name="nav_thermal">Sensors</string>
+    <string name="nav_settings">Settings</string>
+
+    <!-- Units and number formats. The number itself is formatted with the app locale. -->
+    <string name="unit_celsius">%1$s °C</string>
+    <string name="unit_volt">%1$s V</string>
+    <string name="unit_milliampere">%1$s mA</string>
+    <string name="unit_percent">%1$s %%</string>
+    <string name="value_unavailable">–</string>
+
+    <!-- Battery screen -->
+    <string name="battery_title">Battery temperature</string>
+    <string name="heat_cool">Cool</string>
+    <string name="heat_warm">Warm</string>
+    <string name="heat_hot">Hot</string>
+    <string name="battery_level">Charge</string>
+    <string name="battery_voltage">Voltage</string>
+    <string name="battery_current">Current</string>
+    <string name="battery_status">Status</string>
+    <string name="battery_source">Power source</string>
+    <string name="battery_health">Health</string>
+    <string name="battery_warning">Battery is above %1$s</string>
+    <string name="battery_waiting">Waiting for the first battery reading…</string>
+
+    <string name="status_charging">Charging</string>
+    <string name="status_discharging">Discharging</string>
+    <string name="status_full">Full</string>
+    <string name="status_not_charging">Not charging</string>
+    <string name="status_unknown">Unknown</string>
+
+    <string name="source_ac">Charger</string>
+    <string name="source_usb">USB</string>
+    <string name="source_wireless">Wireless</string>
+    <string name="source_dock">Dock</string>
+    <string name="source_battery">Battery</string>
+
+    <string name="health_good">Good</string>
+    <string name="health_overheat">Overheating</string>
+    <string name="health_dead">Dead</string>
+    <string name="health_over_voltage">Over voltage</string>
+    <string name="health_cold">Cold</string>
+    <string name="health_failure">Failure</string>
+    <string name="health_unknown">Unknown</string>
+
+    <!-- History chart -->
+    <string name="history_title">History</string>
+    <plurals name="history_window">
+        <item quantity="one">Last minute</item>
+        <item quantity="other">Last %d minutes</item>
+    </plurals>
+    <string name="history_collecting">Collecting readings. The curve appears after a few seconds.</string>
+    <string name="history_range">Min %1$s · Max %2$s</string>
+    <string name="history_threshold">Warning at %1$s</string>
+    <string name="history_note">Recorded while Tempest is open.</string>
+
+    <!-- Thermal zones screen -->
+    <string name="thermal_title">Thermal zones</string>
+    <plurals name="thermal_zone_count">
+        <item quantity="one">%d zone</item>
+        <item quantity="other">%d zones</item>
+    </plurals>
+    <string name="thermal_zone_index">Zone %1$d</string>
+    <string name="thermal_soc">Hottest SoC zone</string>
+    <string name="thermal_soc_warning">SoC is above %1$s</string>
+    <string name="thermal_status">System thermal status: %1$s</string>
+    <string name="thermal_empty_title">No readable zones</string>
+    <string name="thermal_empty_body">This device does not let apps read its thermal zones. Turn on root access in the settings to see all of them.</string>
+    <string name="thermal_loading">Reading thermal zones…</string>
+
+    <string name="root_off">Without root: only readable zones</string>
+    <string name="root_checking">Asking for root access…</string>
+    <string name="root_granted">Root access active: all zones</string>
+    <string name="root_denied">Root access denied</string>
+
+    <string name="thermal_status_none">Normal</string>
+    <string name="thermal_status_light">Light</string>
+    <string name="thermal_status_moderate">Moderate</string>
+    <string name="thermal_status_severe">Severe</string>
+    <string name="thermal_status_critical">Critical</string>
+    <string name="thermal_status_emergency">Emergency</string>
+    <string name="thermal_status_shutdown">Shutdown</string>
+
+    <!-- Settings -->
+    <string name="settings_title">Settings</string>
+    <string name="settings_thresholds">Warning thresholds</string>
+    <string name="settings_thresholds_body">Tempest highlights readings above these values.</string>
+    <string name="settings_threshold_battery">Battery</string>
+    <string name="settings_threshold_soc">SoC</string>
+    <string name="settings_root">Root access</string>
+    <string name="settings_root_body">Reads every thermal zone with su -c (KernelSU, Magisk). Optional.</string>
+    <string name="settings_language">Language</string>
+    <string name="settings_language_system">System default</string>
+    <string name="settings_about">About</string>
+    <string name="settings_about_body">Tempest has no internet permission. Every reading stays on your device.</string>
+    <string name="settings_version">Version %1$s</string>
+
+    <string name="language_en" translatable="false">English</string>
+    <string name="language_de" translatable="false">Deutsch</string>
+    <string name="language_fr" translatable="false">Français</string>
+    <string name="language_it" translatable="false">Italiano</string>
+</resources>

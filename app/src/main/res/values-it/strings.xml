@@ -1,0 +1,96 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="nav_battery">Batteria</string>
+    <string name="nav_thermal">Sensori</string>
+    <string name="nav_settings">Impostazioni</string>
+
+    <string name="unit_celsius">%1$s °C</string>
+    <string name="unit_volt">%1$s V</string>
+    <string name="unit_milliampere">%1$s mA</string>
+    <string name="unit_percent">%1$s %%</string>
+    <string name="value_unavailable">–</string>
+
+    <string name="battery_title">Temperatura della batteria</string>
+    <string name="heat_cool">Fresca</string>
+    <string name="heat_warm">Tiepida</string>
+    <string name="heat_hot">Calda</string>
+    <string name="battery_level">Carica</string>
+    <string name="battery_voltage">Tensione</string>
+    <string name="battery_current">Corrente</string>
+    <string name="battery_status">Stato</string>
+    <string name="battery_source">Alimentazione</string>
+    <string name="battery_health">Salute</string>
+    <string name="battery_warning">Batteria oltre %1$s</string>
+    <string name="battery_waiting">In attesa della prima lettura…</string>
+
+    <string name="status_charging">In carica</string>
+    <string name="status_discharging">In scarica</string>
+    <string name="status_full">Carica completa</string>
+    <string name="status_not_charging">Non in carica</string>
+    <string name="status_unknown">Sconosciuto</string>
+
+    <string name="source_ac">Caricatore</string>
+    <string name="source_usb">USB</string>
+    <string name="source_wireless">Wireless</string>
+    <string name="source_dock">Dock</string>
+    <string name="source_battery">Batteria</string>
+
+    <string name="health_good">Buona</string>
+    <string name="health_overheat">Surriscaldata</string>
+    <string name="health_dead">Esaurita</string>
+    <string name="health_over_voltage">Sovratensione</string>
+    <string name="health_cold">Fredda</string>
+    <string name="health_failure">Guasto</string>
+    <string name="health_unknown">Sconosciuta</string>
+
+    <string name="history_title">Cronologia</string>
+    <plurals name="history_window">
+        <item quantity="one">Ultimo minuto</item>
+        <item quantity="many">Ultimi %d minuti</item>
+        <item quantity="other">Ultimi %d minuti</item>
+    </plurals>
+    <string name="history_collecting">Raccolta delle misure. La curva compare dopo pochi secondi.</string>
+    <string name="history_range">Min %1$s · Max %2$s</string>
+    <string name="history_threshold">Avviso a %1$s</string>
+    <string name="history_note">Registrata mentre Tempest è aperta.</string>
+
+    <string name="thermal_title">Zone termiche</string>
+    <plurals name="thermal_zone_count">
+        <item quantity="one">%d zona</item>
+        <item quantity="many">%d zone</item>
+        <item quantity="other">%d zone</item>
+    </plurals>
+    <string name="thermal_zone_index">Zona %1$d</string>
+    <string name="thermal_soc">Zona SoC più calda</string>
+    <string name="thermal_soc_warning">SoC oltre %1$s</string>
+    <string name="thermal_status">Stato termico del sistema: %1$s</string>
+    <string name="thermal_empty_title">Nessuna zona leggibile</string>
+    <string name="thermal_empty_body">Questo dispositivo non consente alle app di leggere le zone termiche. Attiva l’accesso root nelle impostazioni per vederle tutte.</string>
+    <string name="thermal_loading">Lettura delle zone termiche…</string>
+
+    <string name="root_off">Senza root: solo zone leggibili</string>
+    <string name="root_checking">Richiesta dell’accesso root…</string>
+    <string name="root_granted">Accesso root attivo: tutte le zone</string>
+    <string name="root_denied">Accesso root negato</string>
+
+    <string name="thermal_status_none">Normale</string>
+    <string name="thermal_status_light">Lieve</string>
+    <string name="thermal_status_moderate">Moderato</string>
+    <string name="thermal_status_severe">Grave</string>
+    <string name="thermal_status_critical">Critico</string>
+    <string name="thermal_status_emergency">Emergenza</string>
+    <string name="thermal_status_shutdown">Spegnimento</string>
+
+    <string name="settings_title">Impostazioni</string>
+    <string name="settings_thresholds">Soglie di avviso</string>
+    <string name="settings_thresholds_body">Tempest evidenzia i valori oltre queste soglie.</string>
+    <string name="settings_threshold_battery">Batteria</string>
+    <string name="settings_threshold_soc">SoC</string>
+    <string name="settings_root">Accesso root</string>
+    <string name="settings_root_body">Legge tutte le zone termiche con su -c (KernelSU, Magisk). Facoltativo.</string>
+    <string name="settings_language">Lingua</string>
+    <string name="settings_language_system">Lingua di sistema</string>
+    <string name="settings_about">Informazioni</string>
+    <string name="settings_about_body">Tempest non ha l’autorizzazione Internet. Tutte le misure restano sul tuo dispositivo.</string>
+    <string name="settings_version">Versione %1$s</string>
+</resources>
