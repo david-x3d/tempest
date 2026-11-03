@@ -1,0 +1,12 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 108 108" width="512" height="512">
+<defs>
+  <clipPath id="m"><circle cx="54" cy="54" r="54"/></clipPath>
+  <linearGradient id="bg" x1="0" y1="0" x2="0.35" y2="1">
+    <stop offset="0" stop-color="#F0483E"/><stop offset="1" stop-color="#B3261E"/>
+  </linearGradient>
+  <linearGradient id="hg" x1="0" y1="0" x2="0" y2="1">
+    <stop offset="0" stop-color="#F4511E"/><stop offset="1" stop-color="#C62828"/>
+  </linearGradient>
+</defs>
+<g clip-path="url(#m)"><rect width="108" height="108" fill="#ECE4EE"/><path d="M39,63.69 L39,32 A10,10 0 0,1 59,32 L59,63.69 A13,13 0 1,1 39,63.69 Z M43.5,45 L43.5,32 A5.5,5.5 0 0,1 54.5,32 L54.5,45 L54.04,45.34 L53.58,45.65 L53.12,45.92 L52.67,46.13 L52.21,46.26 L51.75,46.3 L51.29,46.26 L50.83,46.13 L50.38,45.92 L49.92,45.65 L49.46,45.34 L49,45 L48.54,44.66 L48.08,44.35 L47.62,44.08 L47.17,43.87 L46.71,43.74 L46.25,43.7 L45.79,43.74 L45.33,43.87 L44.88,44.08 L44.42,44.35 L43.96,44.66 L43.5,45 Z" fill-rule="evenodd" fill="#3B2F48"/><path d="M63.5,28 L69.5,28 M63.5,35 L67.1,35 M63.5,42 L69.5,42 M63.5,49 L67.1,49 M63.5,56 L69.5,56" stroke="#3B2F48" stroke-width="2.4" stroke-linecap="round"/></g>
+</svg>
