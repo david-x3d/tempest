@@ -31,6 +31,10 @@ import androidx.compose.material3.MaterialShapes
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.material3.toShape
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.setValue
+import androidx.compose.runtime.saveable.rememberSaveable
+import androidx.compose.material3.OutlinedTextField
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
@@ -70,6 +74,7 @@ fun ThermalScreen(
     viewModel: ThermalViewModel = viewModel(factory = ThermalViewModel.Factory),
 ) {
     val state by viewModel.uiState.collectAsStateWithLifecycle()
+    var query by rememberSaveable { mutableStateOf("") }
     val reading = state.reading
     val soc = reading.socZone
 
@@ -80,7 +85,7 @@ fun ThermalScreen(
 
     LazyColumn(
         modifier = Modifier.fillMaxSize(),
-        contentPadding = contentPadding + PaddingValues(16.dp),
+        contentPadding = contentPadding + PaddingValues(20.dp),
         verticalArrangement = Arrangement.spacedBy(12.dp),
         horizontalAlignment = Alignment.CenterHorizontally,
     ) {
@@ -104,6 +109,9 @@ fun ThermalScreen(
 
         reading.headroom?.let { headroom -> item { HeadroomCard(headroom) } }
 
+        item {
+            OutlinedTextField(value = query, onValueChange = { query = it }, label = { Text(stringResource(R.string.sensor_search)) }, singleLine = true, modifier = Modifier.fillMaxWidth(), shape = CardShape)
+        }
         when {
             !reading.loaded -> item {
                 Box(Modifier.fillMaxWidth().padding(48.dp), contentAlignment = Alignment.Center) {
@@ -111,7 +119,8 @@ fun ThermalScreen(
                 }
             }
             reading.zones.isEmpty() -> item { EmptyState() }
-            else -> items(reading.zones.sortedByDescending { it.celsius }, key = { "zone${it.index}" }) { zone ->
+            reading.zones.none { it.type.contains(query, ignoreCase = true) } -> item { Text(stringResource(R.string.sensor_no_results)) }
+            else -> items(reading.zones.filter { it.type.contains(query, ignoreCase = true) }.sortedByDescending { it.celsius }, key = { "zone${it.index}" }) { zone ->
                 ZoneRow(zone, warning = state.threshold, modifier = Modifier.animateItem())
             }
         }
@@ -275,7 +284,7 @@ private fun EmptyState() {
     ) {}
 }
 
-private fun ThermalStatus.label() = when (this) {
+internal fun ThermalStatus.label() = when (this) {
     ThermalStatus.None -> R.string.thermal_status_none
     ThermalStatus.Light -> R.string.thermal_status_light
     ThermalStatus.Moderate -> R.string.thermal_status_moderate

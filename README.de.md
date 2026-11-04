@@ -26,6 +26,11 @@ umso stärker schwingt, je heißer es wird. Gebaut mit Jetpack Compose und Mater
 
 ## Funktionen
 
+- **Übersicht** mit Akku- und SoC-Temperatur, Verlauf und Schnellzugriffen auf Sensoren
+- **Neue Chip-Seite** mit auswählbaren CPU-Kernen, GPU-/RAM-Anzeigen und aufklappbaren Hardwaredetails
+- **Darstellung nach Wunsch** mit Standard-Tab, Hell/Dunkel/System, dynamischen Farben, Wellen, Animationen und Haptik
+- **SoC-Temperaturprofile** für Alltag, aktive Nutzung, Gaming und eigene Grenzen mit anpassbarer Normaltemperatur unter Last; die Profile sind Richtwerte, keine vom Hersteller bestätigten Grenzwerte
+
 - **Akkutemperatur live** über `ACTION_BATTERY_CHANGED`, dazu Spannung, Strom, Ladestand,
   Ladestatus, Stromquelle und Zustand
 - **Thermal Zones** aus `/sys/class/thermal/thermal_zone*`, die heißeste zuerst, jede mit
@@ -44,7 +49,7 @@ umso stärker schwingt, je heißer es wird. Gebaut mit Jetpack Compose und Mater
   Umgebungssensoren des Handys (Umgebungstemperatur, Luftfeuchtigkeit, Luftdruck, Licht)
 - **Eigene Temperaturstufen**: Lege fest, was kalt, kühl, warm, heiß und ultraheiß ist;
   Farben, Formen und Wellen richten sich danach
-- **Einstellbare Warnschwellen** (Standard: 40 °C Akku, 45 °C SoC) mit Hinweis und
+- **Einstellbare Warnschwellen** (Standard: 40 °C Akku, 60 °C SoC im ausgeglichenen Profil) mit Hinweis und
   haptischem Feedback beim Überschreiten
 - **Große Hintergrund-Alarme**: optionale Überwachung mit Heads-up-Benachrichtigung in
   riesiger Schrift und, wenn erlaubt, Vollbild-Alarm auch auf dem Sperrbildschirm

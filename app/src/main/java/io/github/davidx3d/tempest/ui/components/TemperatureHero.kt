@@ -8,6 +8,7 @@ import androidx.compose.animation.core.infiniteRepeatable
 import androidx.compose.animation.core.rememberInfiniteTransition
 import androidx.compose.animation.core.tween
 import androidx.compose.animation.animateColorAsState
+import androidx.compose.foundation.layout.BoxWithConstraints
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.fillMaxSize
@@ -63,9 +64,11 @@ fun TemperatureHero(
     modifier: Modifier = Modifier,
     trendPerMinute: Float? = null,
 ) {
+    val motionEnabled = LocalMotionEnabled.current
+    val wavesEnabled = LocalWavesEnabled.current
     val scale = LocalHeatScale.current
     val spatial = MaterialTheme.motionScheme.defaultSpatialSpec<Float>()
-    val shown by animateFloatAsState(celsiusValue, spatial, label = "temperature")
+    val shown by animateFloatAsState(celsiusValue, if (motionEnabled) spatial else androidx.compose.animation.core.snap(), label = "temperature")
     val heat = scale.fraction(shown)
     val band = scale.band(celsiusValue)
     val color by animateColorAsState(scale.color(celsiusValue), label = "heatColor")
@@ -84,7 +87,8 @@ fun TemperatureHero(
 
     val pulse = remember { Animatable(1f) }
     val fast = MaterialTheme.motionScheme.fastSpatialSpec<Float>()
-    LaunchedEffect(celsiusValue) {
+    LaunchedEffect(celsiusValue, motionEnabled) {
+        if (!motionEnabled) return@LaunchedEffect
         tick = !tick
         pulse.animateTo(1.06f, fast)
         pulse.animateTo(1f, spatial)
@@ -103,63 +107,66 @@ fun TemperatureHero(
     val stroke = with(density) { Stroke(width = 10.dp.toPx(), cap = StrokeCap.Round) }
     val track = with(density) { Stroke(width = 10.dp.toPx(), cap = StrokeCap.Round) }
 
-    Box(modifier.size(HERO_SIZE), contentAlignment = Alignment.Center) {
-        CircularWavyProgressIndicator(
-            progress = { heat },
-            modifier = Modifier.fillMaxSize(),
-            color = color,
-            trackColor = color.copy(alpha = 0.18f),
-            stroke = stroke,
-            trackStroke = track,
-            // The indicator only builds its wave morph after an amplitude animation, so a custom
-            // amplitude starts at zero and springs up once the hero is on screen.
-            amplitude = { if (waveArmed) 0.35f + 0.65f * heat else 0f },
-            // Hotter readings get more, tighter waves around the ring.
-            wavelength = (2 * PI * (HERO_SIZE.value / 2) / (14 + 14 * heat)).toFloat().dp,
-        )
-        MorphingBlob(
-            target = shape,
-            color = color.copy(alpha = 0.16f),
-            modifier = Modifier
-                .padding(28.dp)
-                .fillMaxSize()
-                .graphicsLayer {
-                    rotationZ = rotation
-                    scaleX = pulse.value
-                    scaleY = pulse.value
-                },
-        )
-        Column(horizontalAlignment = Alignment.CenterHorizontally) {
-            Text(
-                label,
-                style = MaterialTheme.typography.titleSmall,
-                color = MaterialTheme.colorScheme.onSurfaceVariant,
-            )
-            Text(
-                celsius(shown),
+    BoxWithConstraints(modifier, contentAlignment = Alignment.Center) {
+        val heroSize = minOf(HERO_SIZE, maxWidth)
+        Box(Modifier.size(heroSize), contentAlignment = Alignment.Center) {
+            CircularWavyProgressIndicator(
+                progress = { heat },
+                modifier = Modifier.fillMaxSize(),
                 color = color,
-                textAlign = TextAlign.Center,
-                maxLines = 1,
-                style = TextStyle(
-                    fontFamily = flexFontFamily(weight = (400 + 550 * heat).toInt(), width = 90f + 40f * heat),
-                    fontSize = 60.sp,
-                    lineHeight = 64.sp,
-                ),
+                trackColor = color.copy(alpha = 0.18f),
+                stroke = stroke,
+                trackStroke = track,
+                // The indicator only builds its wave morph after an amplitude animation, so a custom
+                // amplitude starts at zero and springs up once the hero is on screen.
+                amplitude = { if (waveArmed && wavesEnabled) 0.35f + 0.65f * heat else 0f },
+                // Hotter readings get more, tighter waves around the ring.
+                wavelength = (2 * PI * (heroSize.value / 2) / (14 + 14 * heat)).toFloat().dp,
             )
-            Text(
-                stringResource(
-                    when (band) {
-                        HeatBand.Cold -> R.string.heat_cold
-                        HeatBand.Cool -> R.string.heat_cool
-                        HeatBand.Warm -> R.string.heat_warm
-                        HeatBand.Hot -> R.string.heat_hot
-                        HeatBand.Ultra -> R.string.heat_ultra
+            MorphingBlob(
+                target = shape,
+                color = color.copy(alpha = 0.16f),
+                modifier = Modifier
+                    .padding(28.dp)
+                    .fillMaxSize()
+                    .graphicsLayer {
+                        rotationZ = if (motionEnabled) rotation else 0f
+                        scaleX = pulse.value
+                        scaleY = pulse.value
                     },
-                ),
-                style = MaterialTheme.typography.titleMedium,
-                color = color,
             )
-            if (trendPerMinute != null) TrendLabel(trendPerMinute)
+            Column(horizontalAlignment = Alignment.CenterHorizontally) {
+                Text(
+                    label,
+                    style = MaterialTheme.typography.titleSmall,
+                    color = MaterialTheme.colorScheme.onSurfaceVariant,
+                )
+                Text(
+                    celsius(shown),
+                    color = color,
+                    textAlign = TextAlign.Center,
+                    maxLines = 1,
+                    style = TextStyle(
+                        fontFamily = flexFontFamily(weight = (400 + 550 * heat).toInt(), width = 90f + 40f * heat),
+                        fontSize = (60 * (heroSize / HERO_SIZE)).sp,
+                        lineHeight = (64 * (heroSize / HERO_SIZE)).sp,
+                    ),
+                )
+                Text(
+                    stringResource(
+                        when (band) {
+                            HeatBand.Cold -> R.string.heat_cold
+                            HeatBand.Cool -> R.string.heat_cool
+                            HeatBand.Warm -> R.string.heat_warm
+                            HeatBand.Hot -> R.string.heat_hot
+                            HeatBand.Ultra -> R.string.heat_ultra
+                        },
+                    ),
+                    style = MaterialTheme.typography.titleMedium,
+                    color = color,
+                )
+                if (trendPerMinute != null) TrendLabel(trendPerMinute)
+            }
         }
     }
 }

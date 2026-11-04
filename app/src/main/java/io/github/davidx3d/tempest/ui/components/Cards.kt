@@ -2,16 +2,17 @@ package io.github.davidx3d.tempest.ui.components
 
 import androidx.compose.animation.animateColorAsState
 import androidx.compose.foundation.background
+import androidx.compose.foundation.layout.Spacer
+import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.ColumnScope
 import androidx.compose.foundation.layout.Row
-import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
-import androidx.compose.foundation.layout.width
+import androidx.compose.foundation.layout.heightIn
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.text.TextAutoSize
 import androidx.compose.material.icons.Icons
@@ -60,6 +61,7 @@ fun SectionCard(
                     }
                 }
             }
+            if (title != null) ExpressiveWave()
             content()
         }
     }
@@ -100,10 +102,12 @@ fun StatTile(
         shape = CardShape,
         colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surfaceContainer),
     ) {
-        Row(Modifier.padding(16.dp), verticalAlignment = Alignment.CenterVertically) {
+        Column(
+            Modifier.fillMaxWidth().heightIn(min = 148.dp).padding(16.dp),
+            verticalArrangement = Arrangement.spacedBy(12.dp),
+        ) {
             ShapeBadge(icon, shape, accent, onAccent)
-            Spacer(Modifier.width(12.dp))
-            Column {
+            Column(verticalArrangement = Arrangement.spacedBy(4.dp)) {
                 Text(
                     label,
                     style = MaterialTheme.typography.labelMedium,
@@ -112,9 +116,9 @@ fun StatTile(
                 // Long values like "3.956 mAh" shrink instead of being cut off.
                 Text(
                     value,
-                    style = MaterialTheme.typography.titleMedium,
-                    maxLines = 1,
-                    autoSize = TextAutoSize.StepBased(minFontSize = 11.sp, maxFontSize = MaterialTheme.typography.titleMedium.fontSize),
+                    style = MaterialTheme.typography.titleLarge,
+                    maxLines = 2,
+                    autoSize = TextAutoSize.StepBased(minFontSize = 16.sp, maxFontSize = MaterialTheme.typography.titleLarge.fontSize),
                 )
             }
         }
@@ -126,7 +130,7 @@ fun WarningBanner(text: String, modifier: Modifier = Modifier) {
     val container by animateColorAsState(MaterialTheme.colorScheme.errorContainer, label = "warning")
     Card(
         modifier = modifier.fillMaxWidth(),
-        shape = RoundedCornerShape(percent = 50),
+        shape = RoundedCornerShape(32.dp),
         colors = CardDefaults.cardColors(containerColor = container),
     ) {
         Row(

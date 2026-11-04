@@ -1,5 +1,14 @@
 package io.github.davidx3d.tempest.ui
 
+import androidx.compose.ui.platform.LocalContext
+import androidx.lifecycle.compose.collectAsStateWithLifecycle
+import androidx.compose.runtime.CompositionLocalProvider
+import io.github.davidx3d.tempest.TempestApp
+import io.github.davidx3d.tempest.data.settings.socLevels
+import io.github.davidx3d.tempest.ui.theme.HeatScale
+import io.github.davidx3d.tempest.ui.theme.LocalHeatScale
+import io.github.davidx3d.tempest.ui.overview.OverviewScreen
+import androidx.compose.material.icons.rounded.Dashboard
 import androidx.annotation.StringRes
 import androidx.compose.animation.AnimatedContent
 import androidx.compose.animation.fadeIn
@@ -38,6 +47,7 @@ import io.github.davidx3d.tempest.ui.settings.SettingsScreen
 import io.github.davidx3d.tempest.ui.thermal.ThermalScreen
 
 enum class Destination(@StringRes val label: Int, val icon: ImageVector) {
+    Overview(R.string.overview_title, Icons.Rounded.Dashboard),
     Battery(R.string.nav_battery, Icons.Rounded.BatteryFull),
     Thermal(R.string.nav_thermal, Icons.Rounded.DeviceThermostat),
     Cpu(R.string.nav_cpu, Icons.Rounded.Memory),
@@ -45,16 +55,23 @@ enum class Destination(@StringRes val label: Int, val icon: ImageVector) {
     Settings(R.string.nav_settings, Icons.Rounded.Settings),
 }
 
+val startDestinations = listOf(Destination.Settings, Destination.Overview, Destination.Battery, Destination.Thermal, Destination.Cpu, Destination.Sensors)
+
 @Composable
 fun TempestRoot() {
-    var current by rememberSaveable { mutableStateOf(Destination.Battery) }
+    val app = LocalContext.current.applicationContext as TempestApp
+    val settings by app.container.settings.settings.collectAsStateWithLifecycle()
+    if (!settings.loaded) return
+    val start = startDestinations.getOrElse(settings.startTab) { Destination.Settings }
+    var current by rememberSaveable { mutableStateOf(start) }
+    androidx.activity.compose.BackHandler(enabled = current != start) { current = start }
     val haptics = LocalHapticFeedback.current
     val motion = MaterialTheme.motionScheme
 
     Scaffold(
         bottomBar = {
             ShortNavigationBar {
-                Destination.entries.forEach { destination ->
+                Destination.entries.filter { it != Destination.Sensors }.forEach { destination ->
                     ShortNavigationBarItem(
                         selected = destination == current,
                         onClick = {
@@ -83,17 +100,21 @@ fun TempestRoot() {
         AnimatedContent(
             targetState = current,
             transitionSpec = {
+                if (!settings.animations) androidx.compose.animation.EnterTransition.None togetherWith androidx.compose.animation.ExitTransition.None else
                 (fadeIn(motion.defaultEffectsSpec()) + scaleIn(motion.defaultSpatialSpec(), initialScale = 0.92f))
                     .togetherWith(fadeOut(motion.fastEffectsSpec()) + scaleOut(motion.fastSpatialSpec(), targetScale = 1.04f))
             },
             label = "destination",
         ) { destination ->
-            when (destination) {
-                Destination.Battery -> BatteryScreen(padding)
-                Destination.Thermal -> ThermalScreen(padding)
-                Destination.Cpu -> CpuScreen(padding)
-                Destination.Sensors -> SensorsScreen(padding)
-                Destination.Settings -> SettingsScreen(padding)
+            CompositionLocalProvider(LocalHeatScale provides HeatScale(if (destination == Destination.Thermal || destination == Destination.Cpu) settings.socLevels else settings.levels)) {
+                when (destination) {
+                    Destination.Overview -> OverviewScreen(padding) { current = it }
+                    Destination.Battery -> BatteryScreen(padding)
+                    Destination.Thermal -> ThermalScreen(padding)
+                    Destination.Cpu -> CpuScreen(padding)
+                    Destination.Sensors -> SensorsScreen(padding)
+                    Destination.Settings -> SettingsScreen(padding)
+            }
             }
         }
     }

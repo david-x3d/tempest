@@ -98,11 +98,60 @@ fun SettingsScreen(
 
     LazyColumn(
         modifier = Modifier.fillMaxSize(),
-        contentPadding = contentPadding + PaddingValues(16.dp),
+        contentPadding = contentPadding + PaddingValues(20.dp),
         verticalArrangement = Arrangement.spacedBy(12.dp),
     ) {
         item {
             Text(stringResource(R.string.settings_title), style = MaterialTheme.typography.displaySmall)
+        }
+        item { io.github.davidx3d.tempest.ui.components.ExpressiveWave() }
+        item { io.github.davidx3d.tempest.ui.overview.ProfileCard(state.settings, viewModel::setThermalProfile) }
+        item {
+            SectionCard(title = stringResource(R.string.profile_baseline), subtitle = stringResource(R.string.profile_baseline_body)) {
+                ThresholdSlider(label = stringResource(R.string.profile_baseline_value), value = state.settings.socNormalUnderLoad, range = 35f..65f, onCommit = viewModel::setSocNormalUnderLoad)
+            }
+        }
+        item { Text(stringResource(R.string.settings_appearance_group), style = MaterialTheme.typography.titleMedium, modifier = Modifier.padding(top = 12.dp)) }
+        item {
+            SectionCard(title = stringResource(R.string.appearance_title)) {
+                Text(stringResource(R.string.settings_start_tab), style = MaterialTheme.typography.titleMedium)
+                Text(stringResource(R.string.settings_start_tab_body), style = MaterialTheme.typography.bodyMedium, color = MaterialTheme.colorScheme.onSurfaceVariant)
+                io.github.davidx3d.tempest.ui.startDestinations.chunked(2).forEachIndexed { row, destinations ->
+                    Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+                        destinations.forEachIndexed { column, destination ->
+                            val index = row * 2 + column
+                            FilterChip(selected = state.settings.startTab == index, onClick = { viewModel.setStartTab(index) },
+                                shape = androidx.compose.foundation.shape.CircleShape,
+                                label = { Text(stringResource(destination.label)) }, modifier = Modifier.weight(1f))
+                        }
+                    }
+                }
+
+                SingleChoiceSegmentedButtonRow(Modifier.fillMaxWidth()) {
+                    listOf(R.string.appearance_system, R.string.appearance_light, R.string.appearance_dark).forEachIndexed { i, label ->
+                        SegmentedButton(selected = state.settings.appearance == i, onClick = { viewModel.setAppearance(i) }, shape = androidx.compose.foundation.shape.CircleShape) { Text(stringResource(label)) }
+                    }
+                }
+                Row(verticalAlignment = Alignment.CenterVertically) {
+                    Text(stringResource(R.string.appearance_dynamic), modifier = Modifier.weight(1f))
+                    Switch(checked = state.settings.dynamicColor, onCheckedChange = viewModel::setDynamicColor)
+                }
+            }
+        }
+        item {
+            SectionCard(title = stringResource(R.string.expressive_options)) {
+                listOf(
+                    Triple(R.string.option_haptics, state.settings.haptics, viewModel::setHaptics),
+                    Triple(R.string.option_motion, state.settings.animations, viewModel::setAnimations),
+                    Triple(R.string.option_waves, state.settings.waves, viewModel::setWaves),
+                ).forEach { (label, checked, change) ->
+                    Row(Modifier.fillMaxWidth().padding(vertical = 4.dp), verticalAlignment = Alignment.CenterVertically) {
+                        Text(stringResource(label), modifier = Modifier.weight(1f), style = MaterialTheme.typography.titleMedium)
+                        Switch(checked = checked, onCheckedChange = { change(it) })
+                    }
+                }
+                io.github.davidx3d.tempest.ui.components.ExpressiveWave()
+            }
         }
         item { UnitCard(state.settings.fahrenheit, viewModel::setFahrenheit) }
         item { LevelsCard(state.settings.levels, viewModel::setLevels) }
@@ -117,7 +166,7 @@ fun SettingsScreen(
                     range = Settings.BATTERY_RANGE,
                     onCommit = viewModel::setBatteryThreshold,
                 )
-                ThresholdSlider(
+                if (state.settings.thermalProfile == io.github.davidx3d.tempest.data.settings.ThermalProfile.Custom) ThresholdSlider(
                     label = stringResource(R.string.settings_threshold_soc),
                     value = state.settings.socThreshold,
                     range = Settings.SOC_RANGE,
@@ -125,6 +174,7 @@ fun SettingsScreen(
                 )
             }
         }
+        item { Text(stringResource(R.string.settings_monitor_group), style = MaterialTheme.typography.titleMedium, modifier = Modifier.padding(top = 12.dp)) }
         item {
             AlertsCard(
                 enabled = state.settings.alertsEnabled,
@@ -134,6 +184,7 @@ fun SettingsScreen(
                 onTest = viewModel::sendTestAlert,
             )
         }
+        item { Text(stringResource(R.string.settings_access_group), style = MaterialTheme.typography.titleMedium, modifier = Modifier.padding(top = 12.dp)) }
         item {
             ShizukuCard(
                 enabled = state.settings.useShizuku,
@@ -217,7 +268,7 @@ private fun UnitCard(fahrenheit: Boolean, onChange: (Boolean) -> Unit) {
                         haptics.performHapticFeedback(HapticFeedbackType.SegmentTick)
                         onChange(value)
                     },
-                    shape = SegmentedButtonDefaults.itemShape(i, 2),
+                    shape = androidx.compose.foundation.shape.CircleShape,
                 ) { Text(stringResource(label)) }
             }
         }
@@ -250,6 +301,7 @@ private fun LevelsCard(levels: HeatLevels, onCommit: (HeatLevels) -> Unit) {
                 .zip(HeatLevels.PRESETS)
                 .forEach { (label, preset) ->
                     FilterChip(
+                        shape = androidx.compose.foundation.shape.CircleShape,
                         selected = draft == preset,
                         onClick = {
                             draft = preset
@@ -388,7 +440,7 @@ private fun AlertsCard(
                                 haptics.performHapticFeedback(HapticFeedbackType.SegmentTick)
                                 onRepeatChange(minutes)
                             },
-                            shape = SegmentedButtonDefaults.itemShape(i, options.size),
+                            shape = androidx.compose.foundation.shape.CircleShape,
                         ) {
                             Text(
                                 if (minutes == 0) {
@@ -519,7 +571,7 @@ private fun RecordingCard(
                                 haptics.performHapticFeedback(HapticFeedbackType.SegmentTick)
                                 onIntervalChange(seconds)
                             },
-                            shape = SegmentedButtonDefaults.itemShape(i, options.size),
+                            shape = androidx.compose.foundation.shape.CircleShape,
                             icon = {},
                         ) {
                             Text(

@@ -11,8 +11,8 @@ android {
         applicationId = "io.github.davidx3d.tempest"
         minSdk = 31
         targetSdk = 36
-        versionCode = 6
-        versionName = "1.4.0"
+        versionCode = 11
+        versionName = "1.6.0"
     }
 
     buildTypes {
@@ -49,6 +49,7 @@ kotlin {
 }
 
 dependencies {
+    testImplementation("junit:junit:4.13.2")
     implementation(libs.androidx.core)
     implementation(libs.androidx.activity.compose)
     implementation(libs.androidx.appcompat)

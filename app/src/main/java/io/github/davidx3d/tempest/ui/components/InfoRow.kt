@@ -4,7 +4,6 @@ import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
-import androidx.compose.foundation.layout.widthIn
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Surface
@@ -35,7 +34,7 @@ fun InfoRow(label: String, value: String?, modifier: Modifier = Modifier) {
             value,
             style = MaterialTheme.typography.titleSmall,
             textAlign = TextAlign.End,
-            modifier = Modifier.widthIn(max = 220.dp),
+            modifier = Modifier.weight(1f),
         )
     }
 }

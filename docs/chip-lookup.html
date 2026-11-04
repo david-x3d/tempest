@@ -1,0 +1,80 @@
+<!doctype html>
+<html lang="de"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Tempest Chip-Test</title>
+<style>
+:root{--bg:#fff;--fg:#1b1b1f;--card:#f1f0f4;--mut:#5d5c66;--ok:#1b7f3b;--no:#b3261e;--acc:#5b4bd5}
+@media(prefers-color-scheme:dark){:root{--bg:#121214;--fg:#e5e1e6;--card:#1f1f23;--mut:#a9a7b2;--ok:#7fd99a;--no:#ffb4ab;--acc:#c4bbff}}
+body{margin:0;background:var(--bg);color:var(--fg);font:16px/1.5 system-ui,sans-serif;padding:24px 16px}
+main{max-width:640px;margin:0 auto}h1{margin:0 0 4px}p.s{color:var(--mut);margin:0 0 20px}
+form{display:flex;gap:8px}input{flex:1;font:inherit;padding:12px 14px;border-radius:12px;border:2px solid var(--card);background:var(--card);color:var(--fg)}
+input:focus{outline:none;border-color:var(--acc)}button{font:inherit;padding:12px 20px;border:0;border-radius:12px;background:var(--acc);color:var(--bg);font-weight:600;cursor:pointer}
+.card{background:var(--card);border-radius:16px;padding:14px 16px;margin-top:14px}.card h2{font-size:14px;margin:0 0 6px;color:var(--mut);text-transform:uppercase;letter-spacing:.05em}
+.ok{color:var(--ok)}.no{color:var(--no)}.big{font-size:22px;font-weight:700}.mut{color:var(--mut)}code{font-size:14px}
+.chips{display:flex;flex-wrap:wrap;gap:6px;margin-top:16px}.chips button{background:var(--card);color:var(--fg);padding:6px 12px;font-weight:400;font-size:14px}
+</style></head><body><main>
+<h1>Tempest Chip-Test</h1>
+<p class="s">Gleicher Ablauf wie in der App: erst die eingebaute Liste, dann (wenn aktiv) die Wikipedia-Suche. Tippe einen Chip-Code wie <code>MT6995</code>, <code>SM8650</code> oder einen Board-Namen wie <code>pineapple</code>.</p>
+<form id="f"><input id="q" placeholder="z. B. MT6995" autocomplete="off" autofocus><button>Prüfen</button></form>
+<div class="chips" id="ex"></div>
+<div id="out"></div>
+</main>
+<script>
+// Aus SocCatalog.kt erzeugt: Codes (Prefix-Treffer) und Board-Namen.
+const CODES={"sm8850": ["Snapdragon 8 Elite Gen 5", "3 nm"], "sm8750": ["Snapdragon 8 Elite", "3 nm"], "sm8735": ["Snapdragon 8s Gen 4", "4 nm"], "sm8650": ["Snapdragon 8 Gen 3", "4 nm"], "sm8635": ["Snapdragon 8s Gen 3", "4 nm"], "sm8550": ["Snapdragon 8 Gen 2", "4 nm"], "sm8475": ["Snapdragon 8+ Gen 1", "4 nm"], "sm8450": ["Snapdragon 8 Gen 1", "4 nm"], "sm8350": ["Snapdragon 888", "5 nm"], "sm8325": ["Snapdragon 888+", "5 nm"], "sm8250": ["Snapdragon 865 / 870", "7 nm"], "sm8150": ["Snapdragon 855", "7 nm"], "sdm845": ["Snapdragon 845", "10 nm"], "msm8998": ["Snapdragon 835", "10 nm"], "sm7675": ["Snapdragon 7+ Gen 3", "4 nm"], "sm7550": ["Snapdragon 7 Gen 3", "4 nm"], "sm7475": ["Snapdragon 7+ Gen 2", "4 nm"], "sm7450": ["Snapdragon 7 Gen 1", "4 nm"], "sm7435": ["Snapdragon 7s Gen 2", "4 nm"], "sm7325": ["Snapdragon 778G", "6 nm"], "sm7250": ["Snapdragon 765G", "7 nm"], "sm7225": ["Snapdragon 750G", "8 nm"], "sm7150": ["Snapdragon 730G", "8 nm"], "sm7125": ["Snapdragon 720G", "8 nm"], "sm6450": ["Snapdragon 6 Gen 1", "4 nm"], "sm6375": ["Snapdragon 695", "6 nm"], "sm6350": ["Snapdragon 690", "8 nm"], "sm6225": ["Snapdragon 680", "6 nm"], "sm6125": ["Snapdragon 665", "11 nm"], "sm6115": ["Snapdragon 662", "11 nm"], "sm4450": ["Snapdragon 4 Gen 2", "4 nm"], "sm4375": ["Snapdragon 4 Gen 1", "6 nm"], "sm4350": ["Snapdragon 480", "8 nm"], "sdm660": ["Snapdragon 660", "14 nm"], "sdm450": ["Snapdragon 450", "14 nm"], "sdm439": ["Snapdragon 439", "12 nm"], "mt6995": ["Dimensity 9600 Pro", "2 nm"], "mt6993": ["Dimensity 9500", "3 nm"], "mt6991": ["Dimensity 9400", "3 nm"], "mt6989": ["Dimensity 9300", "4 nm"], "mt6985": ["Dimensity 9200", "4 nm"], "mt6983": ["Dimensity 9000", "4 nm"], "mt6899": ["Dimensity 8400", "4 nm"], "mt6897": ["Dimensity 8300", "4 nm"], "mt6896": ["Dimensity 8200", "4 nm"], "mt6895": ["Dimensity 8100", "5 nm"], "mt6893": ["Dimensity 1200", "6 nm"], "mt6891": ["Dimensity 1100", "6 nm"], "mt6889": ["Dimensity 1000+", "7 nm"], "mt6886": ["Dimensity 7200", "4 nm"], "mt6878": ["Dimensity 7300", "4 nm"], "mt6877": ["Dimensity 900 / 1080", "6 nm"], "mt6853": ["Dimensity 720 / 800U", "7 nm"], "mt6835": ["Dimensity 6100+ / 6300", "6 nm"], "mt6833": ["Dimensity 700 / 6020 / 6080", "7 nm"], "mt6789": ["Helio G99", "6 nm"], "mt6785": ["Helio G90T / G95", "12 nm"], "mt6781": ["Helio G96", "12 nm"], "mt6779": ["Helio P90", "12 nm"], "mt6771": ["Helio P60 / P70", "12 nm"], "mt6769": ["Helio G85 / G88", "12 nm"], "mt6768": ["Helio G85 / P65", "12 nm"], "mt6765": ["Helio P35 / G35 / G37", "12 nm"], "mt6762": ["Helio P22 / G25", "12 nm"], "s5e9955": ["Exynos 2500", "3 nm"], "s5e9945": ["Exynos 2400", "4 nm"], "s5e9925": ["Exynos 2200", "4 nm"], "s5e9840": ["Exynos 2100", "5 nm"], "s5e8855": ["Exynos 1580", "4 nm"], "s5e8845": ["Exynos 1480", "4 nm"], "s5e8835": ["Exynos 1380", "5 nm"], "s5e8825": ["Exynos 1280", "5 nm"], "exynos990": ["Exynos 990", "7 nm"], "exynos9825": ["Exynos 9825", "7 nm"], "exynos9820": ["Exynos 9820", "8 nm"], "gs101": ["Google Tensor", "5 nm"], "gs201": ["Google Tensor G2", "5 nm"], "zumapro": ["Google Tensor G4", "4 nm"], "zuma": ["Google Tensor G3", "4 nm"], "laguna": ["Google Tensor G5", "3 nm"]};
+const BOARDS={"canoe": "sm8850", "sun": "sm8750", "pineapple": "sm8650", "kalama": "sm8550", "taro": "sm8450", "lahaina": "sm8350", "kona": "sm8250", "msmnile": "sm8150", "crow": "sm7550", "yupik": "sm7325", "lito": "sm7250", "atoll": "sm7125", "holi": "sm6375", "bengal": "sm6115"};
+
+// SocCatalog.vendor
+function vendor(t){t=t.toLowerCase();
+ if(/qti|qualcomm|qcom|snapdragon|\bsm\d{4}|sdm\d|msm\d/.test(t))return"Qualcomm";
+ if(/mediatek|\bmt\d{4}|\bmt6|dimensity|helio/.test(t))return"MediaTek";
+ if(/tensor|\bgs\d{3}|zuma|laguna/.test(t))return"Google";
+ if(/exynos|s5e\d|samsung|universal\d/.test(t))return"Samsung";
+ if(/unisoc|spreadtrum|sprd|\bums\d|\bsc\d{4}|\bt\d{3}\b/.test(t))return"Unisoc";
+ if(/kirin|hisilicon|\bhi\d{4}/.test(t))return"HiSilicon";
+ return"Unbekannt"}
+// SocCatalog.name
+function catalog(hint){hint=hint.trim().toLowerCase();
+ for(const [c,v] of Object.entries(CODES)) if(hint===c||hint.startsWith(c)) return {code:c,name:v[0],process:v[1]};
+ if(BOARDS[hint]){const c=BOARDS[hint],v=CODES[c];return {code:c,name:v[0],process:v[1],board:hint}}
+ return null}
+// WikiSocParser
+const esc=s=>s.replace(/[.*+?^${}()|[\]\\]/g,"\\$&");
+const clean=s=>s.replaceAll("{{nbs}}"," ").replaceAll("&nbsp;"," ").replace(/<[^>]+>/g,"").replace(/\s+/g," ").trim();
+function mediatek(wt,hint){const m=hint.trim().match(/^mt\d{4}/i);if(!m)return null;
+ const re=new RegExp("\\b"+esc(m[0])+"(?![0-9])","i");
+ const names=[...wt.matchAll(/<b>((?:Dimensity|Helio)[^<]*)<\/b>/g)];
+ for(let i=0;i<names.length;i++){const start=names[i].index+names[i][0].length;
+  const end=i+1<names.length?names[i+1].index:wt.length;
+  if(re.test(wt.slice(start,end)))return clean(names[i][1])}
+ return null}
+function qualcomm(wt,hint){const m=hint.trim().match(/^(?:sm|sdm|msm|sd|qcm)\d{3,4}/i);if(!m)return null;
+ const name=/^\|\s*(?:rowspan="\d+"\s*\|\s*)?Snapdragon(?:\s|<br\s*\/?>|&nbsp;)*([^<{|\n">\[\]]+)/m;
+ const match=new RegExp("^\\|\\s*"+esc(m[0])+"(?![0-9])","i");
+ let last=null;
+ for(const row of wt.split("\n|-")){const n=row.match(name);if(n)last="Snapdragon "+clean(n[1]);
+  if(match.test(row.trimStart()))return last}
+ return null}
+async function wikitext(page){
+ const r=await fetch("https://en.wikipedia.org/w/api.php?action=parse&page="+page+"&prop=wikitext&format=json&formatversion=2&origin=*");
+ if(!r.ok)throw new Error("HTTP "+r.status);return (await r.json()).parse.wikitext}
+
+const out=document.getElementById("out"),q=document.getElementById("q");
+const row=(h,b)=>`<div class="card"><h2>${h}</h2>${b}</div>`;
+let token=0;
+async function run(){const hint=q.value.trim(),my=++token;if(!hint){out.innerHTML="";return}
+ const v=vendor(hint);let html=row("Hersteller (wie in der App erkannt)",`<span class="big">${v}</span>`);
+ const c=catalog(hint);
+ html+=row("1. Eingebaute Liste",c?`<span class="big ok">✓ ${c.name}</span><br><span class="mut">${[c.process,c.board?"Board "+c.board+" → "+c.code.toUpperCase():"Code "+c.code.toUpperCase()].filter(Boolean).join(" · ")}</span>`:`<span class="big no">✗ nicht enthalten</span><br><span class="mut">Die App würde den Rohwert zeigen.</span>`);
+ out.innerHTML=html+row("2. Wikipedia-Suche (optionaler Schalter)",`<span class="mut">Lade Chipliste …</span>`);
+ let w;
+ try{let name=null;
+  if(v==="MediaTek")name=mediatek(await wikitext("List_of_MediaTek_systems_on_chips"),hint);
+  else if(v==="Qualcomm")name=qualcomm(await wikitext("List_of_Qualcomm_Snapdragon_systems_on_chips"),hint);
+  else w=`<span class="mut">Die Online-Suche kennt nur MediaTek und Qualcomm.</span>`;
+  if(!w)w=name?`<span class="big ok">✓ ${name}</span>`:`<span class="big no">✗ nichts gefunden</span>`;
+ }catch(e){w=`<span class="big no">✗ Fehler</span><br><span class="mut">${e.message}</span>`}
+ if(my!==token)return;
+ out.lastElementChild.innerHTML="<h2>2. Wikipedia-Suche (optionaler Schalter)</h2>"+w}
+document.getElementById("f").onsubmit=e=>{e.preventDefault();run()};
+for(const x of ["MT6995","MT6991","SM8650","SM8850","pineapple","MT6789","s5e9945","MT9999"]){const b=document.createElement("button");b.type="button";b.textContent=x;b.onclick=()=>{q.value=x;run()};document.getElementById("ex").append(b)}
+</script></body></html>

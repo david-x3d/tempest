@@ -26,6 +26,11 @@ Built with Jetpack Compose and Material 3 Expressive.
 
 ## Features
 
+- **Overview dashboard** with battery and SoC temperatures, history and quick access to sensors
+- **Redesigned chip dashboard** with selectable CPU cores, live GPU/RAM readings and expandable hardware details
+- **Personal settings** for the start tab, light/dark/system appearance, dynamic colour, waves, motion and haptics
+- **SoC temperature profiles** for everyday use, active use, gaming and custom limits, with an adjustable normal temperature under load; these are tuning presets, not manufacturer-certified limits
+
 - **Live battery temperature** from `ACTION_BATTERY_CHANGED`, plus voltage, current,
   charge level, charging state, power source and health
 - **Thermal zones** from `/sys/class/thermal/thermal_zone*`, sorted hottest first, each with a
@@ -44,7 +49,7 @@ Built with Jetpack Compose and Material 3 Expressive.
   environment sensors (ambient temperature, humidity, air pressure, light)
 - **Your own heat levels**: decide what counts as cold, cool, warm, hot and ultra hot; colours,
   shapes and waves follow them
-- **Warning thresholds** you can adjust (defaults: 40 °C battery, 45 °C SoC) with a banner and
+- **Warning thresholds** you can adjust (defaults: 40 °C battery, 60 °C SoC with the balanced profile) with a banner and
   haptic feedback when they are crossed
 - **Big background alerts**: optional monitoring that posts a heads-up notification with the
   temperature in huge type and, if allowed, a full-screen alert over the lock screen

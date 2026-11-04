@@ -1,5 +1,6 @@
 package io.github.davidx3d.tempest.alerts
 
+import io.github.davidx3d.tempest.data.settings.effectiveSocThreshold
 import android.app.Service
 import android.content.Context
 import android.content.Intent
@@ -58,8 +59,8 @@ class MonitorService : Service() {
                 if (watcher.check(AlertSource.Battery, battery, settings.batteryThreshold, repeat, now)) {
                     notifier.showAlert(AlertSource.Battery, battery!!, settings.batteryThreshold, settings.fahrenheit)
                 }
-                if (watcher.check(AlertSource.Soc, soc, settings.socThreshold, repeat, now)) {
-                    notifier.showAlert(AlertSource.Soc, soc!!, settings.socThreshold, settings.fahrenheit)
+                if (watcher.check(AlertSource.Soc, soc, settings.effectiveSocThreshold, repeat, now)) {
+                    notifier.showAlert(AlertSource.Soc, soc!!, settings.effectiveSocThreshold, settings.fahrenheit)
                 }
             }
         }

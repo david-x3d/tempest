@@ -15,7 +15,17 @@ import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
+import androidx.compose.foundation.lazy.LazyRow
 import androidx.compose.foundation.lazy.LazyColumn
+import androidx.compose.material3.FilterChip
+import androidx.compose.material3.TextButton
+import androidx.compose.runtime.mutableIntStateOf
+import androidx.compose.runtime.setValue
+import androidx.compose.runtime.saveable.rememberSaveable
+import androidx.compose.foundation.shape.CircleShape
+import io.github.davidx3d.tempest.ui.components.ExpressiveWave
+import io.github.davidx3d.tempest.ui.components.LocalWavesEnabled
+import io.github.davidx3d.tempest.ui.components.LocalMotionEnabled
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.CircularWavyProgressIndicator
 import androidx.compose.material3.LoadingIndicator
@@ -64,32 +74,7 @@ fun CpuScreen(
     viewModel: CpuViewModel = viewModel(factory = CpuViewModel.Factory),
 ) {
     val state by viewModel.uiState.collectAsStateWithLifecycle()
-    val info = state.info
-
-    LazyColumn(
-        modifier = Modifier.fillMaxSize(),
-        contentPadding = contentPadding + PaddingValues(16.dp),
-        verticalArrangement = Arrangement.spacedBy(12.dp),
-    ) {
-        item { Text(stringResource(R.string.cpu_title), style = MaterialTheme.typography.displaySmall) }
-
-        if (info == null) {
-            item {
-                Box(Modifier.fillMaxWidth().padding(48.dp), contentAlignment = Alignment.Center) {
-                    LoadingIndicator(Modifier.size(64.dp))
-                }
-            }
-            return@LazyColumn
-        }
-
-        item { SocCard(info, state) }
-        item { CoresCard(state.cores, info.coreCount, state.live.coreLoadPercent) }
-        if (info.clusters.isNotEmpty()) item { ClustersCard(info) }
-        item { GpuCard(info, state.live) }
-        item { MemoryCard(info, state.live) }
-        item { DisplayCard(info) }
-        item { SystemCard(info, state.live, state.access) }
-    }
+    ChipDashboard(state, contentPadding)
 }
 
 @OptIn(ExperimentalLayoutApi::class)
@@ -98,22 +83,17 @@ private fun SocCard(info: DeviceInfo, state: CpuUiState) {
     val soc = info.soc
     val maxKhz = info.clusters.mapNotNull { it.maxKhz }.maxOrNull()
     SectionCard {
-        Row(verticalAlignment = Alignment.CenterVertically) {
+        Row(Modifier.fillMaxWidth(), verticalAlignment = Alignment.CenterVertically) {
             SocEmblem(soc.vendor)
             Spacer(Modifier.width(16.dp))
             Column(Modifier.weight(1f)) {
-                Text(soc.name, style = MaterialTheme.typography.headlineSmall)
-                val subtitle = listOfNotNull(
-                    soc.vendor.displayName.takeIf { soc.vendor != SocVendor.Unknown },
-                    soc.code?.uppercase()?.takeIf { !soc.name.contains(it, ignoreCase = true) },
-                    soc.process,
-                    stringResource(R.string.cpu_name_online).takeIf { soc.nameSource == NameSource.Online },
-                ).joinToString(" · ")
-                if (subtitle.isNotEmpty()) {
-                    Text(subtitle, style = MaterialTheme.typography.bodyMedium, color = MaterialTheme.colorScheme.onSurfaceVariant)
-                }
+                Text(soc.vendor.displayName, style = MaterialTheme.typography.labelLarge, color = MaterialTheme.colorScheme.primary)
+                Text(soc.name, style = MaterialTheme.typography.headlineLarge)
+                val subtitle = listOfNotNull(soc.process, soc.code?.takeIf { !soc.name.contains(it, ignoreCase = true) }).joinToString(" · ")
+                if (subtitle.isNotEmpty()) Text(subtitle, style = MaterialTheme.typography.bodyMedium, color = MaterialTheme.colorScheme.onSurfaceVariant)
             }
         }
+        ExpressiveWave()
         FlowRow(horizontalArrangement = Arrangement.spacedBy(8.dp), verticalArrangement = Arrangement.spacedBy(8.dp)) {
             state.socCelsius?.let { temp ->
                 val heat by animateColorAsState(LocalHeatScale.current.color(temp), label = "socHeat")
@@ -123,23 +103,31 @@ private fun SocCard(info: DeviceInfo, state: CpuUiState) {
             maxKhz?.let { TonalPill(stringResource(R.string.cpu_up_to, clock(it))) }
             info.abis.firstOrNull()?.let { TonalPill(it) }
         }
-        state.live.cpuLoadPercent?.let { load ->
-            Column(verticalArrangement = Arrangement.spacedBy(6.dp)) {
-                Row {
-                    Text(stringResource(R.string.cpu_load), style = MaterialTheme.typography.titleSmall, modifier = Modifier.weight(1f))
-                    Text(formatUnit(R.string.unit_percent, load.toFloat(), 0), style = MaterialTheme.typography.titleSmall)
-                }
-                HeatBar(load / 100f, MaterialTheme.colorScheme.secondary)
-            }
+    }
+}
+
+@Composable
+private fun LiveSummary(state: CpuUiState) {
+    SectionCard(title = stringResource(R.string.chip_live)) {
+        Row(horizontalArrangement = Arrangement.spacedBy(12.dp)) {
+            LiveMetric(stringResource(R.string.cpu_load), state.live.cpuLoadPercent?.let { formatUnit(R.string.unit_percent, it.toFloat(), 0) }, Modifier.weight(1f))
+            LiveMetric(stringResource(R.string.thermal_soc), state.socCelsius?.let { celsius(it) }, Modifier.weight(1f))
         }
+        state.live.cpuLoadPercent?.let { HeatBar(it / 100f, MaterialTheme.colorScheme.primary) }
         state.clockLoad?.let { load ->
-            Column(verticalArrangement = Arrangement.spacedBy(6.dp)) {
-                Row {
-                    Text(stringResource(R.string.cpu_clock_load), style = MaterialTheme.typography.titleSmall, modifier = Modifier.weight(1f))
-                    Text(formatUnit(R.string.unit_percent, load * 100f, 0), style = MaterialTheme.typography.titleSmall)
-                }
-                HeatBar(load, MaterialTheme.colorScheme.primary)
-            }
+            InfoRow(stringResource(R.string.cpu_clock_load), formatUnit(R.string.unit_percent, load * 100f, 0))
+            HeatBar(load, MaterialTheme.colorScheme.tertiary)
+        }
+        Text(stringResource(R.string.chip_clock_note), style = MaterialTheme.typography.bodySmall, color = MaterialTheme.colorScheme.onSurfaceVariant)
+    }
+}
+
+@Composable
+private fun LiveMetric(label: String, value: String?, modifier: Modifier) {
+    Surface(modifier, shape = RoundedCornerShape(28.dp), color = MaterialTheme.colorScheme.secondaryContainer) {
+        Column(Modifier.padding(16.dp), verticalArrangement = Arrangement.spacedBy(8.dp)) {
+            Text(label, style = MaterialTheme.typography.labelLarge)
+            Text(value ?: "—", style = MaterialTheme.typography.headlineSmall)
         }
     }
 }
@@ -161,24 +149,25 @@ private fun CoresCard(cores: List<CpuCore>, coreCount: Int, loads: Map<Int, Int>
 
 @Composable
 private fun CoreTile(index: Int, core: CpuCore?, loadPercent: Int?, modifier: Modifier = Modifier) {
-    val fraction = core?.let { c -> (c.currentKhz.toFloat() / (c.maxKhz?.takeIf { it > 0 } ?: c.currentKhz)).coerceIn(0f, 1f) } ?: 0f
+    val fraction = core?.maxKhz?.takeIf { it > 0 }?.let { (core.currentKhz.toFloat() / it).coerceIn(0f, 1f) } ?: 0f
+    val waves = LocalWavesEnabled.current
+    val motion = LocalMotionEnabled.current
     val shown by animateFloatAsState(fraction, MaterialTheme.motionScheme.defaultSpatialSpec(), label = "core$index")
     val armed = rememberWaveArmed()
     val color = if (core == null) MaterialTheme.colorScheme.outline else MaterialTheme.colorScheme.primary
     val stroke = with(LocalDensity.current) { Stroke(width = 4.dp.toPx(), cap = StrokeCap.Round) }
     Surface(modifier, shape = RoundedCornerShape(20.dp), color = MaterialTheme.colorScheme.surfaceContainerHigh) {
-        Row(Modifier.padding(12.dp), verticalAlignment = Alignment.CenterVertically) {
+        Column(Modifier.fillMaxWidth().padding(16.dp), verticalArrangement = Arrangement.spacedBy(12.dp)) {
             CircularWavyProgressIndicator(
-                progress = { shown },
+                progress = { if (motion) shown else fraction },
                 modifier = Modifier.size(40.dp),
                 color = color,
                 trackColor = color.copy(alpha = 0.18f),
                 stroke = stroke,
                 trackStroke = stroke,
-                amplitude = { if (armed) 0.3f + 0.7f * it else 0f },
+                amplitude = { if (armed && waves) 0.3f + 0.7f * it else 0f },
                 wavelength = 8.dp,
             )
-            Spacer(Modifier.width(12.dp))
             Column {
                 Text(
                     stringResource(R.string.cpu_core, index),
@@ -203,7 +192,7 @@ private fun CoreTile(index: Int, core: CpuCore?, loadPercent: Int?, modifier: Mo
 }
 
 @Composable
-private fun ClustersCard(info: DeviceInfo) {
+internal fun ClustersCard(info: DeviceInfo) {
     SectionCard(title = stringResource(R.string.cpu_clusters)) {
         info.clusters.forEach { cluster -> ClusterRow(cluster) }
         InfoRow(stringResource(R.string.cpu_governor), info.governor)
@@ -235,7 +224,7 @@ private fun ClusterRow(cluster: CpuCluster) {
                     color = MaterialTheme.colorScheme.onSurfaceVariant,
                 )
             }
-            range?.let { Text(it, style = MaterialTheme.typography.labelLarge, color = MaterialTheme.colorScheme.onSurfaceVariant) }
+            range?.let { Text(it, modifier = Modifier.weight(1f), style = MaterialTheme.typography.labelLarge, color = MaterialTheme.colorScheme.onSurfaceVariant) }
         }
     }
 }
@@ -251,7 +240,7 @@ private fun coreRange(cores: List<Int>): String {
 }
 
 @Composable
-private fun GpuCard(info: DeviceInfo, live: LiveChip) {
+internal fun GpuCard(info: DeviceInfo, live: LiveChip) {
     val gpu = info.gpu
     SectionCard(title = stringResource(R.string.gpu_title), subtitle = gpu.renderer) {
         live.gpuLoadPercent?.let { load ->
@@ -271,7 +260,7 @@ private fun GpuCard(info: DeviceInfo, live: LiveChip) {
 }
 
 @Composable
-private fun MemoryCard(info: DeviceInfo, live: LiveChip) {
+internal fun MemoryCard(info: DeviceInfo, live: LiveChip) {
     SectionCard(title = stringResource(R.string.memory_title)) {
         live.memory?.let { mem ->
             UsageBlock(stringResource(R.string.memory_ram), mem.totalBytes - mem.availableBytes, mem.totalBytes)
@@ -311,7 +300,7 @@ private fun UsageBlock(label: String, used: Long, total: Long) {
 }
 
 @Composable
-private fun DisplayCard(info: DeviceInfo) {
+internal fun DisplayCard(info: DeviceInfo) {
     val d = info.display
     val locale = currentLocale()
     SectionCard(title = stringResource(R.string.display_title)) {
@@ -332,7 +321,7 @@ private fun DisplayCard(info: DeviceInfo) {
 }
 
 @Composable
-private fun SystemCard(info: DeviceInfo, live: LiveChip, access: Access) {
+internal fun SystemCard(info: DeviceInfo, live: LiveChip, access: Access) {
     val s = info.system
     SectionCard(title = stringResource(R.string.system_title)) {
         InfoRow(stringResource(R.string.system_model), "${s.brand.replaceFirstChar { it.uppercase() }} ${s.model}")

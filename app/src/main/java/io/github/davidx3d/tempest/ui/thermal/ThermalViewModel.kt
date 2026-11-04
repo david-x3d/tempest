@@ -1,5 +1,6 @@
 package io.github.davidx3d.tempest.ui.thermal
 
+import io.github.davidx3d.tempest.data.settings.effectiveSocThreshold
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.ViewModelProvider.AndroidViewModelFactory.Companion.APPLICATION_KEY
 import androidx.lifecycle.viewModelScope
@@ -49,7 +50,7 @@ class ThermalViewModel(
             settings.settings,
             deep.reading,
         ) { reading, status, soc, prefs, extra ->
-            ThermalUiState(reading, status, soc, prefs.socThreshold, extra, prefs.backgroundRecording)
+            ThermalUiState(reading, status, soc, prefs.effectiveSocThreshold, extra, prefs.backgroundRecording)
         }.stateIn(viewModelScope, SharingStarted.WhileSubscribed(5_000), ThermalUiState())
 
     fun exportCsv(): String = historyCsv(history.battery.value, history.soc.value)

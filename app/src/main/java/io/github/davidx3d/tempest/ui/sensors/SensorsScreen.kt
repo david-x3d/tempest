@@ -94,7 +94,7 @@ fun SensorsScreen(
 
     LazyColumn(
         modifier = Modifier.fillMaxSize(),
-        contentPadding = contentPadding + PaddingValues(16.dp),
+        contentPadding = contentPadding + PaddingValues(20.dp),
         verticalArrangement = Arrangement.spacedBy(2.dp),
     ) {
         item {
@@ -135,6 +135,7 @@ fun SensorsScreen(
             LazyRow(Modifier.padding(vertical = 8.dp), horizontalArrangement = Arrangement.spacedBy(8.dp)) {
                 item {
                     FilterChip(
+                        shape = androidx.compose.foundation.shape.CircleShape,
                         selected = state.filter == null,
                         onClick = { viewModel.setFilter(null) },
                         label = { Text(stringResource(R.string.sensors_filter_all)) },
@@ -142,6 +143,7 @@ fun SensorsScreen(
                 }
                 items(state.groups) { group ->
                     FilterChip(
+                        shape = androidx.compose.foundation.shape.CircleShape,
                         selected = state.filter == group,
                         onClick = {
                             haptics.performHapticFeedback(HapticFeedbackType.SegmentTick)

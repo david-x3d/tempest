@@ -44,6 +44,15 @@ data class HeatLevels(
 }
 
 data class Settings(
+    val loaded: Boolean = false,
+    val startTab: Int = 0,
+    val haptics: Boolean = true,
+    val animations: Boolean = true,
+    val waves: Boolean = true,
+    val socNormalUnderLoad: Float = 45f,
+    val appearance: Int = 0,
+    val dynamicColor: Boolean = true,
+    val thermalProfile: ThermalProfile = ThermalProfile.Balanced,
     val batteryThreshold: Float = DEFAULT_BATTERY_THRESHOLD,
     val socThreshold: Float = DEFAULT_SOC_THRESHOLD,
     val useRoot: Boolean = false,
@@ -80,6 +89,15 @@ class SettingsRepository(context: Context, scope: CoroutineScope) {
         .map { prefs ->
             val defaults = HeatLevels()
             Settings(
+                loaded = true,
+                startTab = (prefs[START_TAB] ?: 0).coerceIn(0, 5),
+                haptics = prefs[HAPTICS] ?: true,
+                animations = prefs[ANIMATIONS] ?: true,
+                waves = prefs[WAVES] ?: true,
+                socNormalUnderLoad = (prefs[SOC_NORMAL] ?: 45f).coerceIn(35f, 65f),
+                appearance = (prefs[APPEARANCE] ?: 0).coerceIn(0, 2),
+                dynamicColor = prefs[DYNAMIC_COLOR] ?: true,
+                thermalProfile = ThermalProfile.entries.getOrElse(prefs[THERMAL_PROFILE] ?: 0) { ThermalProfile.Balanced },
                 batteryThreshold = prefs[BATTERY_THRESHOLD] ?: Settings.DEFAULT_BATTERY_THRESHOLD,
                 socThreshold = prefs[SOC_THRESHOLD] ?: Settings.DEFAULT_SOC_THRESHOLD,
                 useRoot = prefs[USE_ROOT] ?: false,
@@ -99,6 +117,20 @@ class SettingsRepository(context: Context, scope: CoroutineScope) {
             )
         }
         .stateIn(scope, SharingStarted.Eagerly, Settings())
+
+    suspend fun setStartTab(value: Int) = store.edit { it[START_TAB] = value.coerceIn(0, 5) }
+
+    suspend fun setHaptics(value: Boolean) = store.edit { it[HAPTICS] = value }
+    suspend fun setAnimations(value: Boolean) = store.edit { it[ANIMATIONS] = value }
+    suspend fun setWaves(value: Boolean) = store.edit { it[WAVES] = value }
+
+    suspend fun setSocNormalUnderLoad(value: Float) = store.edit { it[SOC_NORMAL] = value.coerceIn(35f, 65f) }
+
+    suspend fun setAppearance(value: Int) = store.edit { it[APPEARANCE] = value.coerceIn(0, 2) }
+
+    suspend fun setDynamicColor(value: Boolean) = store.edit { it[DYNAMIC_COLOR] = value }
+
+    suspend fun setThermalProfile(value: ThermalProfile) = store.edit { it[THERMAL_PROFILE] = value.ordinal }
 
     suspend fun setBatteryThreshold(value: Float) = store.edit { it[BATTERY_THRESHOLD] = value }
 
@@ -129,6 +161,14 @@ class SettingsRepository(context: Context, scope: CoroutineScope) {
     }
 
     private companion object {
+        val START_TAB = intPreferencesKey("start_tab")
+        val HAPTICS = booleanPreferencesKey("haptics")
+        val ANIMATIONS = booleanPreferencesKey("animations")
+        val WAVES = booleanPreferencesKey("waves")
+        val SOC_NORMAL = floatPreferencesKey("soc_normal_under_load")
+        val APPEARANCE = intPreferencesKey("appearance")
+        val DYNAMIC_COLOR = booleanPreferencesKey("dynamic_color")
+        val THERMAL_PROFILE = intPreferencesKey("thermal_profile")
         val BATTERY_THRESHOLD = floatPreferencesKey("battery_threshold")
         val SOC_THRESHOLD = floatPreferencesKey("soc_threshold")
         val USE_ROOT = booleanPreferencesKey("use_root")

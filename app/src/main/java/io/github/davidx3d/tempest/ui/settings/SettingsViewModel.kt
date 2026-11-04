@@ -54,6 +54,19 @@ class SettingsViewModel(
             SettingsUiState(settings, access, shizuku, lang, rec)
         }.stateIn(viewModelScope, SharingStarted.WhileSubscribed(5_000), SettingsUiState(repository.settings.value))
 
+    fun setStartTab(value: Int) = viewModelScope.launch { repository.setStartTab(value) }
+
+    fun setHaptics(value: Boolean) = viewModelScope.launch { repository.setHaptics(value) }
+    fun setAnimations(value: Boolean) = viewModelScope.launch { repository.setAnimations(value) }
+    fun setWaves(value: Boolean) = viewModelScope.launch { repository.setWaves(value) }
+
+    fun setSocNormalUnderLoad(value: Float) = viewModelScope.launch { repository.setSocNormalUnderLoad(value) }
+
+    fun setAppearance(value: Int) = viewModelScope.launch { repository.setAppearance(value) }
+    fun setDynamicColor(value: Boolean) = viewModelScope.launch { repository.setDynamicColor(value) }
+
+    fun setThermalProfile(value: io.github.davidx3d.tempest.data.settings.ThermalProfile) = viewModelScope.launch { repository.setThermalProfile(value) }
+
     fun setBatteryThreshold(value: Float) = viewModelScope.launch { repository.setBatteryThreshold(value) }
 
     fun setSocThreshold(value: Float) = viewModelScope.launch { repository.setSocThreshold(value) }

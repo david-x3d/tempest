@@ -90,7 +90,7 @@ fun BatteryScreen(
 
     LazyColumn(
         modifier = Modifier.fillMaxSize(),
-        contentPadding = contentPadding + PaddingValues(16.dp),
+        contentPadding = contentPadding + PaddingValues(20.dp),
         verticalArrangement = Arrangement.spacedBy(12.dp),
         horizontalAlignment = Alignment.CenterHorizontally,
     ) {
@@ -116,6 +116,7 @@ fun BatteryScreen(
 
 @Composable
 private fun LevelCard(snapshot: BatterySnapshot) {
+    val wavesEnabled = io.github.davidx3d.tempest.ui.components.LocalWavesEnabled.current
     val level = snapshot.levelPercent ?: return
     SectionCard {
         Row(verticalAlignment = Alignment.CenterVertically) {
@@ -130,7 +131,8 @@ private fun LevelCard(snapshot: BatterySnapshot) {
             progress = { level / 100f },
             modifier = Modifier.fillMaxWidth().height(14.dp),
             // The wave only moves while charging.
-            waveSpeed = if (snapshot.status == ChargeStatus.Charging) 20.dp else 0.dp,
+            waveSpeed = if (snapshot.status == ChargeStatus.Charging && io.github.davidx3d.tempest.ui.components.LocalMotionEnabled.current) 20.dp else 0.dp,
+            amplitude = { if (wavesEnabled) 1f else 0f },
         )
     }
 }

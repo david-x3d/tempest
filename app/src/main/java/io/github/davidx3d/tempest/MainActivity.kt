@@ -29,11 +29,25 @@ class MainActivity : AppCompatActivity() {
         setContent {
             val settings by settingsFlow.collectAsStateWithLifecycle()
             val heatScale = remember(settings.levels) { HeatScale(settings.levels) }
+            val systemHaptics = androidx.compose.ui.platform.LocalHapticFeedback.current
+            val feedback = remember(settings.haptics, systemHaptics) {
+                object : androidx.compose.ui.hapticfeedback.HapticFeedback {
+                    override fun performHapticFeedback(hapticFeedbackType: androidx.compose.ui.hapticfeedback.HapticFeedbackType) {
+                        if (settings.haptics) systemHaptics.performHapticFeedback(hapticFeedbackType)
+                    }
+                }
+            }
             CompositionLocalProvider(
+                androidx.compose.ui.platform.LocalHapticFeedback provides feedback,
+                io.github.davidx3d.tempest.ui.components.LocalMotionEnabled provides settings.animations,
+                io.github.davidx3d.tempest.ui.components.LocalWavesEnabled provides settings.waves,
                 LocalHeatScale provides heatScale,
                 LocalFahrenheit provides settings.fahrenheit,
             ) {
-                TempestTheme {
+                TempestTheme(
+                    darkTheme = when (settings.appearance) { 1 -> false; 2 -> true; else -> androidx.compose.foundation.isSystemInDarkTheme() },
+                    dynamicColor = settings.dynamicColor,
+                ) {
                     TempestRoot()
                 }
             }
