@@ -44,14 +44,9 @@
     <string name="health_unknown">Unbekannt</string>
 
     <string name="history_title">Verlauf</string>
-    <plurals name="history_window">
-        <item quantity="one">Letzte Minute</item>
-        <item quantity="other">Letzte %d Minuten</item>
-    </plurals>
     <string name="history_collecting">Sammle Messwerte. Die Kurve erscheint nach wenigen Sekunden.</string>
-    <string name="history_range">Min. %1$s · Max. %2$s</string>
     <string name="history_threshold">Warnung ab %1$s</string>
-    <string name="history_note">Wird aufgezeichnet, solange Tempest geöffnet ist oder Hintergrund-Alarme aktiv sind.</string>
+    <string name="history_note">Wird aufgezeichnet, solange Tempest geöffnet ist. Mit der Hintergrund-Aufzeichnung in den Einstellungen bleibt ein ganzer Tag erhalten.</string>
 
     <string name="thermal_title">Thermal Zones</string>
     <plurals name="thermal_zone_count">
@@ -106,7 +101,7 @@
     <string name="history_export">Als CSV exportieren</string>
     <string name="history_export_title">Tempest-Temperaturverlauf</string>
     <string name="thermal_headroom">Thermischer Spielraum</string>
-    <string name="thermal_headroom_body">Prognose für die nächsten 10 Sekunden. Bei 100 % beginnt das System zu drosseln.</string>
+    <string name="thermal_headroom_body" formatted="false">Prognose für die nächsten 10 Sekunden. Bei 100 % beginnt das System zu drosseln.</string>
     <string name="section_cpu">CPU-Kerne</string>
     <string name="cpu_core">Kern %1$d</string>
     <string name="section_cooling">Kühlgeräte</string>
@@ -262,9 +257,6 @@
         <item quantity="other">%d Kerne</item>
     </plurals>
 
-    <string name="shizuku_checking">Frage Shizuku an…</string>
-    <string name="shizuku_granted">Shizuku aktiv: alle Zonen</string>
-    <string name="shizuku_denied">Shizuku ist nicht bereit</string>
     <string name="access_root">Root</string>
     <string name="access_shizuku">Shizuku</string>
     <string name="settings_shizuku">Shizuku-Zugriff</string>
@@ -294,4 +286,30 @@
     <string name="charging_input_limit">Eingangsstrom-Limit</string>
     <string name="charging_max_voltage">Max. Spannung</string>
     <string name="charging_input">Ladegerät-Eingang</string>
+
+    <!-- 1.4: background recording, chart ranges, runtime estimate -->
+    <string name="unit_volt_approx">≈\u00A0%1$s\u00A0V</string>
+    <string name="unit_watt_approx">≈\u00A0%1$s\u00A0W</string>
+    <string name="value_approx">≈\u00A0%1$s</string>
+    <string name="battery_voltage_cells">Spannung · %1$d Zellen</string>
+    <string name="battery_time_to_empty">Restlaufzeit</string>
+    <string name="duration_hours">%1$d h</string>
+    <string name="duration_seconds">%1$d s</string>
+    <string name="history_note_background">Hintergrund-Aufzeichnung ist an: Der Verlauf läuft weiter, auch wenn Tempest geschlossen ist.</string>
+    <string name="history_min">Min</string>
+    <string name="history_avg">Schnitt</string>
+    <string name="history_max">Max</string>
+    <string name="history_above">%2$s über %1$s</string>
+    <string name="settings_recording">Hintergrund-Aufzeichnung</string>
+    <string name="settings_recording_body">Zeichnet den Temperaturverlauf über Shizuku weiter auf, auch wenn Tempest geschlossen ist. Keine Benachrichtigung, keine Wakelocks: Pausiert, sobald das Handy schläft, und braucht kaum Akku. Nach einem Neustart muss Shizuku wieder gestartet werden.</string>
+    <string name="settings_recording_interval">Intervall</string>
+    <string name="settings_recording_interval_body">Längere Intervalle sparen noch mehr Akku.</string>
+    <string name="settings_recording_clear">Verlauf löschen</string>
+    <string name="recording_starting">Aufzeichnung wird gestartet…</string>
+    <string name="recording_needs_shizuku">Braucht Shizuku. Starte es und erlaube Tempest.</string>
+    <string name="recording_failed">Shizuku konnte die Aufzeichnung nicht starten.</string>
+    <plurals name="recording_running">
+        <item quantity="one">Zeichnet auf · %d Messwert gespeichert</item>
+        <item quantity="other">Zeichnet auf · %d Messwerte gespeichert</item>
+    </plurals>
 </resources>

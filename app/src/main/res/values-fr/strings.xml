@@ -44,15 +44,9 @@
     <string name="health_unknown">Inconnue</string>
 
     <string name="history_title">Historique</string>
-    <plurals name="history_window">
-        <item quantity="one">Dernière minute</item>
-        <item quantity="many">%d dernières minutes</item>
-        <item quantity="other">%d dernières minutes</item>
-    </plurals>
     <string name="history_collecting">Collecte des mesures. La courbe apparaît après quelques secondes.</string>
-    <string name="history_range">Min %1$s · Max %2$s</string>
     <string name="history_threshold">Alerte à %1$s</string>
-    <string name="history_note">Enregistré tant que Tempest est ouvert ou que les alertes en arrière-plan sont actives.</string>
+    <string name="history_note">Enregistré tant que Tempest est ouvert. Activez l’enregistrement en arrière-plan dans les réglages pour garder une journée entière.</string>
 
     <string name="thermal_title">Zones thermiques</string>
     <plurals name="thermal_zone_count">
@@ -108,7 +102,7 @@
     <string name="history_export">Exporter en CSV</string>
     <string name="history_export_title">Historique des températures Tempest</string>
     <string name="thermal_headroom">Marge thermique</string>
-    <string name="thermal_headroom_body">Prévision pour les 10 prochaines secondes. À 100\u00A0% le système commence à brider.</string>
+    <string name="thermal_headroom_body" formatted="false">Prévision pour les 10 prochaines secondes. À 100\u00A0% le système commence à brider.</string>
     <string name="section_cpu">Cœurs du CPU</string>
     <string name="cpu_core">Cœur %1$d</string>
     <string name="section_cooling">Dispositifs de refroidissement</string>
@@ -265,9 +259,6 @@
         <item quantity="other">%d cœurs</item>
     </plurals>
 
-    <string name="shizuku_checking">Demande à Shizuku…</string>
-    <string name="shizuku_granted">Shizuku actif : toutes les zones</string>
-    <string name="shizuku_denied">Shizuku n’est pas prêt</string>
     <string name="access_root">Root</string>
     <string name="access_shizuku">Shizuku</string>
     <string name="settings_shizuku">Accès Shizuku</string>
@@ -297,4 +288,31 @@
     <string name="charging_input_limit">Limite du courant d’entrée</string>
     <string name="charging_max_voltage">Tension max.</string>
     <string name="charging_input">Entrée du chargeur</string>
+
+    <!-- 1.4: background recording, chart ranges, runtime estimate -->
+    <string name="unit_volt_approx">≈\u00A0%1$s\u00A0V</string>
+    <string name="unit_watt_approx">≈\u00A0%1$s\u00A0W</string>
+    <string name="value_approx">≈\u00A0%1$s</string>
+    <string name="battery_voltage_cells">Tension · %1$d cellules</string>
+    <string name="battery_time_to_empty">Autonomie restante</string>
+    <string name="duration_hours">%1$d h</string>
+    <string name="duration_seconds">%1$d s</string>
+    <string name="history_note_background">Enregistrement en arrière-plan actif : la courbe continue même quand Tempest est fermé.</string>
+    <string name="history_min">Min</string>
+    <string name="history_avg">Moyenne</string>
+    <string name="history_max">Max</string>
+    <string name="history_above">Au-dessus de %1$s pendant %2$s</string>
+    <string name="settings_recording">Enregistrement en arrière-plan</string>
+    <string name="settings_recording_body">Continue d’enregistrer l’historique des températures via Shizuku quand Tempest est fermé. Aucune notification, aucun wake lock : il se met en pause quand le téléphone dort et consomme très peu de batterie. Après un redémarrage, Shizuku doit être relancé.</string>
+    <string name="settings_recording_interval">Intervalle</string>
+    <string name="settings_recording_interval_body">Des intervalles plus longs économisent encore plus de batterie.</string>
+    <string name="settings_recording_clear">Effacer l’historique</string>
+    <string name="recording_starting">Démarrage de l’enregistrement…</string>
+    <string name="recording_needs_shizuku">Nécessite Shizuku. Lancez-le et autorisez Tempest.</string>
+    <string name="recording_failed">Shizuku n’a pas pu démarrer l’enregistrement.</string>
+    <plurals name="recording_running">
+        <item quantity="one">Enregistrement · %d mesure stockée</item>
+        <item quantity="many">Enregistrement · %d mesures stockées</item>
+        <item quantity="other">Enregistrement · %d mesures stockées</item>
+    </plurals>
 </resources>

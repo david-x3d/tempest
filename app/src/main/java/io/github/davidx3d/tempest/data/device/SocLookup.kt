@@ -39,12 +39,19 @@ class SocLookup(context: Context) {
         try {
             connection.connectTimeout = TIMEOUT_MS
             connection.readTimeout = TIMEOUT_MS
-            connection.setRequestProperty("User-Agent", "Tempest/1.3 (https://github.com/david-x3d/tempest)")
+            connection.setRequestProperty("User-Agent", "Tempest/1.4 (https://github.com/david-x3d/tempest)")
             if (connection.responseCode != HttpURLConnection.HTTP_OK) error("HTTP ${connection.responseCode}")
             val body = connection.inputStream.use { stream ->
-                val bytes = stream.readNBytes(MAX_BYTES + 1)
-                require(bytes.size <= MAX_BYTES) { "response too large" }
-                String(bytes, Charsets.UTF_8)
+                // readNBytes needs Android 13; read in chunks so Android 12 works too.
+                val out = java.io.ByteArrayOutputStream()
+                val buffer = ByteArray(64 * 1024)
+                while (true) {
+                    val n = stream.read(buffer)
+                    if (n < 0) break
+                    out.write(buffer, 0, n)
+                    require(out.size() <= MAX_BYTES) { "response too large" }
+                }
+                out.toString(Charsets.UTF_8.name())
             }
             return JSONObject(body).getJSONObject("parse").getString("wikitext")
         } finally {

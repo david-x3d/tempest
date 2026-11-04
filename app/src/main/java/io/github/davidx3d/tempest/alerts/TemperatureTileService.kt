@@ -50,10 +50,14 @@ class TemperatureTileService : TileService() {
         if (android.os.Build.VERSION.SDK_INT >= android.os.Build.VERSION_CODES.UPSIDE_DOWN_CAKE) {
             startActivityAndCollapse(PendingIntent.getActivity(this, 0, intent, PendingIntent.FLAG_IMMUTABLE))
         } else {
-            @Suppress("DEPRECATION")
-            startActivityAndCollapse(intent)
+            startLegacy(intent)
         }
     }
+
+    /** Only reached below Android 14, where the Intent overload is still the way to go. */
+    @android.annotation.SuppressLint("StartActivityAndCollapseDeprecated")
+    @Suppress("DEPRECATION")
+    private fun startLegacy(intent: Intent) = startActivityAndCollapse(intent)
 
     override fun onDestroy() {
         scope.cancel()

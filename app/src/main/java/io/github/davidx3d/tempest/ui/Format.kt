@@ -74,3 +74,15 @@ fun clock(khz: Long): String {
 @ReadOnlyComposable
 fun bytes(value: Long): String =
     android.text.format.Formatter.formatFileSize(androidx.compose.ui.platform.LocalContext.current, value)
+
+/** "1 h 5 min" from an hour upwards, "42 min" below. */
+@Composable
+@ReadOnlyComposable
+fun duration(millis: Long): String {
+    val minutes = (millis / 60_000).toInt()
+    return if (minutes >= 60) {
+        stringResource(R.string.duration_hours_minutes, minutes / 60, minutes % 60)
+    } else {
+        stringResource(R.string.duration_minutes, minutes)
+    }
+}

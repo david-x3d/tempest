@@ -2,13 +2,13 @@ package io.github.davidx3d.tempest.data.thermal
 
 import android.content.Context
 import android.os.PowerManager
+import io.github.davidx3d.tempest.data.pace
 import io.github.davidx3d.tempest.data.privilege.Access
 import io.github.davidx3d.tempest.data.privilege.PrivilegeManager
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.channels.awaitClose
-import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.StateFlow
@@ -18,7 +18,6 @@ import kotlinx.coroutines.flow.flow
 import kotlinx.coroutines.flow.flowOn
 import kotlinx.coroutines.flow.stateIn
 import java.io.File
-import kotlin.math.abs
 
 /**
  * Reads thermal zones, cooling devices and CPU clocks from sysfs. Without Shizuku or root only what
@@ -28,6 +27,7 @@ import kotlin.math.abs
 class ThermalRepository(
     context: Context,
     private val privilege: PrivilegeManager,
+    private val foreground: StateFlow<Boolean>,
     scope: CoroutineScope,
 ) {
     private val powerManager = context.getSystemService(PowerManager::class.java)
@@ -48,8 +48,15 @@ class ThermalRepository(
         if (access.state == RootState.Checking) emit(ThermalReading(access = access))
         while (true) {
             val files = (if (access.granted) readPrivileged() else null) ?: readDirectly()
-            emit(parse(files, access))
-            delay(POLL_MS)
+            val reading = parse(files, access)
+            // ColorOS and others hide every zone even from the shell; the thermal HAL still answers.
+            val halSoc = if (access.granted && reading.zones.isEmpty()) {
+                privilege.run("dumpsys thermalservice")?.let(ZoneKinds::halSoc)
+            } else {
+                null
+            }
+            emit(reading.copy(halSoc = halSoc))
+            foreground.pace(POLL_MS, BACKGROUND_POLL_MS)
         }
     }
 
@@ -116,14 +123,8 @@ class ThermalRepository(
             .sortedBy { it.first }
             .toList()
 
-    /** Most kernels report millidegrees, a few tenths or whole degrees. */
     private fun toZone(index: Int, type: String, raw: Long): ThermalZone? {
-        val celsius = when {
-            abs(raw) >= 1_000 -> raw / 1000f
-            abs(raw) >= 200 -> raw / 10f
-            else -> raw.toFloat()
-        }
-        if (celsius !in -40f..200f) return null
+        val celsius = ZoneKinds.celsius(raw) ?: return null
         return ThermalZone(index, type.ifBlank { "thermal_zone$index" }, celsius)
     }
 
@@ -135,6 +136,7 @@ class ThermalRepository(
         const val ZONE = "thermal_zone"
         const val COOLING = "cooling_device"
         const val POLL_MS = 2_000L
+        const val BACKGROUND_POLL_MS = 20_000L
         const val HEADROOM_FORECAST_S = 10
         const val ROOT_SCRIPT =
             "for f in /sys/class/thermal/thermal_zone*/type /sys/class/thermal/thermal_zone*/temp " +

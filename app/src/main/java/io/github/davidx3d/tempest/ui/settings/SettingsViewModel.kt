@@ -12,6 +12,8 @@ import io.github.davidx3d.tempest.TempestApp
 import io.github.davidx3d.tempest.alerts.AlertNotifier
 import io.github.davidx3d.tempest.alerts.AlertSource
 import io.github.davidx3d.tempest.data.battery.BatteryRepository
+import io.github.davidx3d.tempest.data.history.BackgroundRecorder
+import io.github.davidx3d.tempest.data.history.RecorderState
 import io.github.davidx3d.tempest.data.privilege.Access
 import io.github.davidx3d.tempest.data.privilege.PrivilegeManager
 import io.github.davidx3d.tempest.data.privilege.ShizukuShell
@@ -35,19 +37,21 @@ data class SettingsUiState(
     val access: Access = Access(),
     val shizuku: ShizukuStatus = ShizukuStatus.NotInstalled,
     val language: AppLanguage = AppLanguage.System,
+    val recorder: RecorderState = RecorderState.Off,
 )
 
 class SettingsViewModel(
     private val repository: SettingsRepository,
     privilege: PrivilegeManager,
     private val battery: BatteryRepository,
+    private val recorder: BackgroundRecorder,
 ) : ViewModel() {
 
     private val language = MutableStateFlow(currentLanguage())
 
     val uiState: StateFlow<SettingsUiState> =
-        combine(repository.settings, privilege.access, ShizukuShell.status, language.asStateFlow()) { settings, access, shizuku, lang ->
-            SettingsUiState(settings, access, shizuku, lang)
+        combine(repository.settings, privilege.access, ShizukuShell.status, language.asStateFlow(), recorder.state) { settings, access, shizuku, lang, rec ->
+            SettingsUiState(settings, access, shizuku, lang, rec)
         }.stateIn(viewModelScope, SharingStarted.WhileSubscribed(5_000), SettingsUiState(repository.settings.value))
 
     fun setBatteryThreshold(value: Float) = viewModelScope.launch { repository.setBatteryThreshold(value) }
@@ -63,6 +67,16 @@ class SettingsViewModel(
             ShizukuShell.requestPermission()
         }
     }
+
+    /** The recorder runs inside Shizuku, so switching it on also switches Shizuku access on. */
+    fun setBackgroundRecording(value: Boolean) = viewModelScope.launch {
+        repository.setBackgroundRecording(value)
+        if (value && !repository.settings.value.useShizuku) setUseShizuku(true)
+    }
+
+    fun setRecordInterval(seconds: Int) = viewModelScope.launch { repository.setRecordIntervalSeconds(seconds) }
+
+    fun clearHistory() = recorder.clear()
 
     fun setOnlineLookup(value: Boolean) = viewModelScope.launch { repository.setOnlineLookup(value) }
 
@@ -105,7 +119,7 @@ class SettingsViewModel(
         val Factory = viewModelFactory {
             initializer {
                 val container = (this[APPLICATION_KEY] as TempestApp).container
-                SettingsViewModel(container.settings, container.privilege, container.battery)
+                SettingsViewModel(container.settings, container.privilege, container.battery, container.recorder)
             }
         }
     }

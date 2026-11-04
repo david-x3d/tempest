@@ -27,6 +27,7 @@ data class BatteryUiState(
     val threshold: Float = Settings.DEFAULT_BATTERY_THRESHOLD,
     val trendPerMinute: Float? = null,
     val charging: ChargingDetails? = null,
+    val backgroundRecording: Boolean = false,
 ) {
     val isWarning: Boolean get() = snapshot != null && snapshot.temperatureCelsius >= threshold
 }
@@ -40,7 +41,9 @@ class BatteryViewModel(
 
     val uiState: StateFlow<BatteryUiState> =
         combine(battery.snapshot, history.battery, settings.settings, deep.reading) { snapshot, samples, prefs, extra ->
-            BatteryUiState(snapshot, samples, prefs.batteryThreshold, samples.trendPerMinute(), extra.charging)
+            // With Shizuku or root the kernel's exact voltage beats a rounded broadcast value.
+            val exact = extra.batteryVolts?.let { volts -> snapshot?.copy(voltageVolts = volts, voltageEstimated = false) }
+            BatteryUiState(exact ?: snapshot, samples, prefs.batteryThreshold, samples.trendPerMinute(), extra.charging, prefs.backgroundRecording)
         }.stateIn(viewModelScope, SharingStarted.WhileSubscribed(5_000), BatteryUiState())
 
     fun exportCsv(): String = historyCsv(history.battery.value, history.soc.value)

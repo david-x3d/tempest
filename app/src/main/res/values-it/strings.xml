@@ -44,15 +44,9 @@
     <string name="health_unknown">Sconosciuta</string>
 
     <string name="history_title">Cronologia</string>
-    <plurals name="history_window">
-        <item quantity="one">Ultimo minuto</item>
-        <item quantity="many">Ultimi %d minuti</item>
-        <item quantity="other">Ultimi %d minuti</item>
-    </plurals>
     <string name="history_collecting">Raccolta delle misure. La curva compare dopo pochi secondi.</string>
-    <string name="history_range">Min %1$s · Max %2$s</string>
     <string name="history_threshold">Avviso a %1$s</string>
-    <string name="history_note">Registrata mentre Tempest è aperta o gli avvisi in background sono attivi.</string>
+    <string name="history_note">Registrata mentre Tempest è aperta. Attiva la registrazione in background nelle impostazioni per conservare un’intera giornata.</string>
 
     <string name="thermal_title">Zone termiche</string>
     <plurals name="thermal_zone_count">
@@ -108,7 +102,7 @@
     <string name="history_export">Esporta CSV</string>
     <string name="history_export_title">Cronologia temperature di Tempest</string>
     <string name="thermal_headroom">Margine termico</string>
-    <string name="thermal_headroom_body">Previsione per i prossimi 10 secondi. Al 100 % il sistema inizia a limitare le prestazioni.</string>
+    <string name="thermal_headroom_body" formatted="false">Previsione per i prossimi 10 secondi. Al 100 % il sistema inizia a limitare le prestazioni.</string>
     <string name="section_cpu">Core della CPU</string>
     <string name="cpu_core">Core %1$d</string>
     <string name="section_cooling">Dispositivi di raffreddamento</string>
@@ -265,9 +259,6 @@
         <item quantity="other">%d core</item>
     </plurals>
 
-    <string name="shizuku_checking">Richiesta a Shizuku…</string>
-    <string name="shizuku_granted">Shizuku attivo: tutte le zone</string>
-    <string name="shizuku_denied">Shizuku non è pronto</string>
     <string name="access_root">Root</string>
     <string name="access_shizuku">Shizuku</string>
     <string name="settings_shizuku">Accesso Shizuku</string>
@@ -297,4 +288,31 @@
     <string name="charging_input_limit">Limite corrente in ingresso</string>
     <string name="charging_max_voltage">Tensione max.</string>
     <string name="charging_input">Ingresso del caricabatterie</string>
+
+    <!-- 1.4: background recording, chart ranges, runtime estimate -->
+    <string name="unit_volt_approx">≈\u00A0%1$s\u00A0V</string>
+    <string name="unit_watt_approx">≈\u00A0%1$s\u00A0W</string>
+    <string name="value_approx">≈\u00A0%1$s</string>
+    <string name="battery_voltage_cells">Tensione · %1$d celle</string>
+    <string name="battery_time_to_empty">Autonomia residua</string>
+    <string name="duration_hours">%1$d h</string>
+    <string name="duration_seconds">%1$d s</string>
+    <string name="history_note_background">Registrazione in background attiva: il grafico continua anche con Tempest chiusa.</string>
+    <string name="history_min">Min</string>
+    <string name="history_avg">Media</string>
+    <string name="history_max">Max</string>
+    <string name="history_above">Sopra %1$s per %2$s</string>
+    <string name="settings_recording">Registrazione in background</string>
+    <string name="settings_recording_body">Continua a registrare la cronologia delle temperature tramite Shizuku anche con Tempest chiusa. Nessuna notifica, nessun wake lock: si ferma quando il telefono dorme e consuma pochissima batteria. Dopo un riavvio Shizuku va riavviato.</string>
+    <string name="settings_recording_interval">Intervallo</string>
+    <string name="settings_recording_interval_body">Intervalli più lunghi risparmiano ancora più batteria.</string>
+    <string name="settings_recording_clear">Cancella cronologia</string>
+    <string name="recording_starting">Avvio della registrazione…</string>
+    <string name="recording_needs_shizuku">Serve Shizuku. Avvialo e consenti Tempest.</string>
+    <string name="recording_failed">Shizuku non è riuscito ad avviare la registrazione.</string>
+    <plurals name="recording_running">
+        <item quantity="one">Registrazione · %d misura salvata</item>
+        <item quantity="many">Registrazione · %d misure salvate</item>
+        <item quantity="other">Registrazione · %d misure salvate</item>
+    </plurals>
 </resources>

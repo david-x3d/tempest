@@ -32,8 +32,12 @@ umso stärker schwingt, je heißer es wird. Gebaut mit Jetpack Compose und Mater
   einem Wellenbalken, dessen Amplitude und Wellenlänge der Temperatur folgen
 - **Root optional**: Mit KernelSU, Magisk oder einem anderen `su` werden alle Zonen per
   `su -c` gelesen; ohne Root zeigt Tempest die Zonen, die Apps lesen dürfen
-- **Verlauf über 30 Minuten** für Akku und heißeste SoC-Zone als animierte Sinuswelle, deren
-  Amplitude und Frequenz mit der Temperatur steigen
+- **Verlauf über bis zu 24 Stunden** für Akku und heißeste SoC-Zone als animierte Sinuswelle, deren
+  Amplitude und Frequenz mit der Temperatur steigen. Wähle 30 min, 3 h, 12 h oder 24 h, fahre mit dem
+  Finger über die Kurve für jeden Messpunkt und sieh Min, Schnitt, Max und die Zeit über der Grenze
+- **Hintergrund-Aufzeichnung** über Shizuku: Der Verlauf läuft weiter, wenn Tempest geschlossen ist,
+  ohne Benachrichtigung und ohne Wakelocks (pausiert, solange das Handy schläft)
+- **Restlaufzeit** beim Entladen, und Akkus mit zwei Zellen werden an der Spannung erkannt
 - **Mehr Messwerte**: Leistung, Restladung, Ladezyklen (ab Android 14), Akkutechnologie,
   Zeit bis voll sowie ein Trend in °C pro Minute
 - **Mehr Sensoren**: thermischer Spielraum, CPU-Takt je Kern, Kühlgeräte und die
@@ -91,6 +95,11 @@ Mindestens Android 12 (API 31).
 Installiere [Shizuku](https://shizuku.rikka.app/), starte es, aktiviere **Einstellungen → Shizuku-Zugriff**
 und erlaube Tempest. Die Befehle laufen nur lesend über einen kleinen Shizuku-Dienst. Shizuku hat
 Vorrang vor Root, wenn beides an ist.
+
+Die **Hintergrund-Aufzeichnung** (Einstellungen → Hintergrund-Aufzeichnung) startet einen zweiten, sehr
+kleinen Shizuku-Dienst, der alle 30 s bis 5 min Akku- und SoC-Temperatur misst und die letzten 24 Stunden
+in `/data/local/tmp/tempest/history.csv` hält. Beim Öffnen übernimmt Tempest sie in die Kurve. Ohne Root
+endet Shizuku beim Neustart; danach Shizuku wieder starten, dann läuft die Aufzeichnung weiter.
 
 ## Root (optional)
 

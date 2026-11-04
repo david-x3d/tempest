@@ -28,6 +28,7 @@ data class ThermalUiState(
     val socHistory: List<Sample> = emptyList(),
     val threshold: Float = Settings.DEFAULT_SOC_THRESHOLD,
     val deep: DeepReading = DeepReading(),
+    val backgroundRecording: Boolean = false,
 ) {
     val socWarning: Boolean get() = (reading.socZone?.celsius ?: 0f) >= threshold
     val trendPerMinute: Float? get() = socHistory.trendPerMinute()
@@ -48,7 +49,7 @@ class ThermalViewModel(
             settings.settings,
             deep.reading,
         ) { reading, status, soc, prefs, extra ->
-            ThermalUiState(reading, status, soc, prefs.socThreshold, extra)
+            ThermalUiState(reading, status, soc, prefs.socThreshold, extra, prefs.backgroundRecording)
         }.stateIn(viewModelScope, SharingStarted.WhileSubscribed(5_000), ThermalUiState())
 
     fun exportCsv(): String = historyCsv(history.battery.value, history.soc.value)

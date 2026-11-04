@@ -21,10 +21,7 @@ import androidx.compose.foundation.lazy.items
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.rounded.AcUnit
 import androidx.compose.material.icons.rounded.DeviceThermostat
-import androidx.compose.material.icons.rounded.Lock
-import androidx.compose.material.icons.rounded.LockOpen
 import androidx.compose.material.icons.rounded.Thermostat
-import androidx.compose.material3.AssistChip
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.Icon
@@ -51,12 +48,9 @@ import androidx.graphics.shapes.RoundedPolygon
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.lifecycle.viewmodel.compose.viewModel
 import io.github.davidx3d.tempest.R
-import io.github.davidx3d.tempest.data.privilege.Access
 import io.github.davidx3d.tempest.data.privilege.ExtraSource
 import io.github.davidx3d.tempest.data.privilege.ExtraTemp
-import io.github.davidx3d.tempest.data.privilege.PrivilegeMode
 import io.github.davidx3d.tempest.data.thermal.CoolingDevice
-import io.github.davidx3d.tempest.data.thermal.RootState
 import io.github.davidx3d.tempest.data.thermal.ThermalStatus
 import io.github.davidx3d.tempest.data.thermal.ThermalZone
 import io.github.davidx3d.tempest.ui.celsius
@@ -90,7 +84,7 @@ fun ThermalScreen(
         verticalArrangement = Arrangement.spacedBy(12.dp),
         horizontalAlignment = Alignment.CenterHorizontally,
     ) {
-        item { Header(reading.zones.size, reading.access, state.status) }
+        item { Header(reading.zones.size, state.status) }
 
         if (soc != null) {
             item {
@@ -105,7 +99,7 @@ fun ThermalScreen(
                     WarningBanner(stringResource(R.string.thermal_soc_warning, celsius(state.threshold, 0)))
                 }
             }
-            item { HistoryCard(state.socHistory, state.threshold, csv = viewModel::exportCsv) }
+            item { HistoryCard(state.socHistory, state.threshold, csv = viewModel::exportCsv, recording = state.backgroundRecording) }
         }
 
         reading.headroom?.let { headroom -> item { HeadroomCard(headroom) } }
@@ -128,7 +122,7 @@ fun ThermalScreen(
 }
 
 @Composable
-private fun Header(count: Int, access: Access, status: ThermalStatus) {
+private fun Header(count: Int, status: ThermalStatus) {
     Column(Modifier.fillMaxWidth(), verticalArrangement = Arrangement.spacedBy(8.dp)) {
         Text(stringResource(R.string.thermal_title), style = MaterialTheme.typography.displaySmall)
         if (count > 0) {
@@ -138,29 +132,6 @@ private fun Header(count: Int, access: Access, status: ThermalStatus) {
                 color = MaterialTheme.colorScheme.onSurfaceVariant,
             )
         }
-        AssistChip(
-            onClick = {},
-            label = {
-                Text(
-                    stringResource(
-                        when (access.mode to access.state) {
-                            PrivilegeMode.Shizuku to RootState.Checking -> R.string.shizuku_checking
-                            PrivilegeMode.Shizuku to RootState.Granted -> R.string.shizuku_granted
-                            PrivilegeMode.Shizuku to RootState.Denied -> R.string.shizuku_denied
-                            else -> when (access.state) {
-                                RootState.Off -> R.string.root_off
-                                RootState.Checking -> R.string.root_checking
-                                RootState.Granted -> R.string.root_granted
-                                RootState.Denied -> R.string.root_denied
-                            }
-                        },
-                    ),
-                )
-            },
-            leadingIcon = {
-                Icon(if (access.granted) Icons.Rounded.LockOpen else Icons.Rounded.Lock, contentDescription = null)
-            },
-        )
         Text(
             stringResource(R.string.thermal_status, stringResource(status.label())),
             style = MaterialTheme.typography.labelLarge,

@@ -17,10 +17,12 @@ import io.github.davidx3d.tempest.ui.theme.TempestTheme
 
 /** AppCompatActivity so AppCompatDelegate can switch the app language on Android 12 as well. */
 class MainActivity : AppCompatActivity() {
+    private val container get() = (application as TempestApp).container
+
     override fun onCreate(savedInstanceState: Bundle?) {
         enableEdgeToEdge()
         super.onCreate(savedInstanceState)
-        val settingsFlow = (application as TempestApp).container.settings.settings
+        val settingsFlow = container.settings.settings
         // Background alerts survive the app being swiped away; bring the service back if needed.
         if (settingsFlow.value.alertsEnabled) MonitorService.start(this)
 
@@ -36,5 +38,17 @@ class MainActivity : AppCompatActivity() {
                 }
             }
         }
+    }
+
+    override fun onStart() {
+        super.onStart()
+        container.foreground.value = true
+        // Fill the chart with what the background recorder saw while the app was closed.
+        container.recorder.syncLater()
+    }
+
+    override fun onStop() {
+        container.foreground.value = false
+        super.onStop()
     }
 }

@@ -33,3 +33,37 @@ fun historyCsv(battery: List<Sample>, soc: List<Sample>): String {
         }
     }
 }
+
+data class HistoryStats(val min: Float, val max: Float, val average: Float, val aboveMillis: Long)
+
+/**
+ * Min, max, time-weighted average and how long the curve stayed at or above [threshold]. Weighted
+ * by time so a stretch sampled every 5 s does not outweigh one sampled every minute; gaps count
+ * for nothing.
+ */
+fun List<Sample>.stats(threshold: Float): HistoryStats? {
+    if (isEmpty()) return null
+    var weighted = 0.0
+    var weight = 0L
+    var above = 0L
+    zipWithNext { a, b ->
+        val dt = b.timeMillis - a.timeMillis
+        if (dt <= 0 || dt > HistoryRepository.GAP_MILLIS) return@zipWithNext
+        weighted += (a.celsius + b.celsius) / 2.0 * dt
+        weight += dt
+        above += when {
+            a.celsius >= threshold && b.celsius >= threshold -> dt
+            a.celsius >= threshold || b.celsius >= threshold -> dt / 2
+            else -> 0
+        }
+    }
+    val average = if (weight > 0) (weighted / weight).toFloat() else map { it.celsius }.average().toFloat()
+    return HistoryStats(minOf { it.celsius }, maxOf { it.celsius }, average, above)
+}
+
+/** The sample closest to [timeMillis] in a list sorted by time. */
+fun List<Sample>.nearest(timeMillis: Long): Sample? {
+    if (isEmpty()) return null
+    val i = binarySearch { it.timeMillis.compareTo(timeMillis) }.let { if (it < 0) -it - 1 else it }
+    return listOfNotNull(getOrNull(i - 1), getOrNull(i)).minByOrNull { kotlin.math.abs(it.timeMillis - timeMillis) }
+}

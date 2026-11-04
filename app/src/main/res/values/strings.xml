@@ -50,14 +50,9 @@
 
     <!-- History chart -->
     <string name="history_title">History</string>
-    <plurals name="history_window">
-        <item quantity="one">Last minute</item>
-        <item quantity="other">Last %d minutes</item>
-    </plurals>
     <string name="history_collecting">Collecting readings. The curve appears after a few seconds.</string>
-    <string name="history_range">Min %1$s · Max %2$s</string>
     <string name="history_threshold">Warning at %1$s</string>
-    <string name="history_note">Recorded while Tempest is open or background alerts are on.</string>
+    <string name="history_note">Recorded while Tempest is open. Turn on background recording in the settings to keep a whole day.</string>
 
     <!-- Thermal zones screen -->
     <string name="thermal_title">Thermal zones</string>
@@ -128,7 +123,7 @@
     <string name="history_export">Export CSV</string>
     <string name="history_export_title">Tempest temperature history</string>
     <string name="thermal_headroom">Thermal headroom</string>
-    <string name="thermal_headroom_body">Forecast for the next 10 seconds. At 100 % the system starts throttling.</string>
+    <string name="thermal_headroom_body" formatted="false">Forecast for the next 10 seconds. At 100 % the system starts throttling.</string>
     <string name="section_cpu">CPU cores</string>
     <string name="cpu_core">Core %1$d</string>
     <string name="section_cooling">Cooling devices</string>
@@ -275,9 +270,6 @@
         <item quantity="other">%d cores</item>
     </plurals>
 
-    <string name="shizuku_checking">Asking Shizuku…</string>
-    <string name="shizuku_granted">Shizuku active: all zones</string>
-    <string name="shizuku_denied">Shizuku is not ready</string>
     <string name="access_root">Root</string>
     <string name="access_shizuku">Shizuku</string>
     <string name="settings_shizuku">Shizuku access</string>
@@ -307,4 +299,30 @@
     <string name="charging_input_limit">Input current limit</string>
     <string name="charging_max_voltage">Max voltage</string>
     <string name="charging_input">Charger input</string>
+
+    <!-- 1.4: background recording, chart ranges, runtime estimate -->
+    <string name="unit_volt_approx">≈\u00A0%1$s\u00A0V</string>
+    <string name="unit_watt_approx">≈\u00A0%1$s\u00A0W</string>
+    <string name="value_approx">≈\u00A0%1$s</string>
+    <string name="battery_voltage_cells">Voltage · %1$d cells</string>
+    <string name="battery_time_to_empty">Time left</string>
+    <string name="duration_hours">%1$d h</string>
+    <string name="duration_seconds">%1$d s</string>
+    <string name="history_note_background">Background recording is on: the chart keeps going while Tempest is closed.</string>
+    <string name="history_min">Min</string>
+    <string name="history_avg">Average</string>
+    <string name="history_max">Max</string>
+    <string name="history_above">Above %1$s for %2$s</string>
+    <string name="settings_recording">Background recording</string>
+    <string name="settings_recording_body">Keeps recording the temperature history through Shizuku while Tempest is closed. No notification, no wake locks: it pauses whenever the phone sleeps and barely uses any battery. After a reboot Shizuku has to be started again.</string>
+    <string name="settings_recording_interval">Interval</string>
+    <string name="settings_recording_interval_body">Longer intervals save even more battery.</string>
+    <string name="settings_recording_clear">Clear history</string>
+    <string name="recording_starting">Starting the recorder…</string>
+    <string name="recording_needs_shizuku">Needs Shizuku. Start it and allow Tempest.</string>
+    <string name="recording_failed">Shizuku could not start the recorder.</string>
+    <plurals name="recording_running">
+        <item quantity="one">Recording · %d reading stored</item>
+        <item quantity="other">Recording · %d readings stored</item>
+    </plurals>
 </resources>

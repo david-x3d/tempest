@@ -17,6 +17,7 @@ import androidx.compose.foundation.selection.toggleable
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.rounded.Check
 import androidx.compose.material.icons.rounded.Close
+import androidx.compose.material.icons.rounded.DeleteSweep
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedButton
@@ -36,6 +37,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.hapticfeedback.HapticFeedbackType
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.LocalHapticFeedback
+import androidx.compose.ui.res.pluralStringResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.semantics.Role
 import androidx.compose.ui.unit.dp
@@ -70,6 +72,7 @@ import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Brush
 import androidx.core.app.NotificationManagerCompat
 import androidx.lifecycle.compose.LifecycleResumeEffect
+import io.github.davidx3d.tempest.data.history.RecorderState
 import io.github.davidx3d.tempest.data.privilege.PrivilegeMode
 import io.github.davidx3d.tempest.data.privilege.ShizukuShell
 import io.github.davidx3d.tempest.data.privilege.ShizukuStatus
@@ -138,6 +141,16 @@ fun SettingsScreen(
                 onChange = viewModel::setUseShizuku,
                 onGrant = viewModel::requestShizukuPermission,
                 onOpen = { ShizukuShell.openShizuku(context) },
+            )
+        }
+        item {
+            RecordingCard(
+                enabled = state.settings.backgroundRecording,
+                state = state.recorder,
+                intervalSeconds = state.settings.recordIntervalSeconds,
+                onChange = viewModel::setBackgroundRecording,
+                onIntervalChange = viewModel::setRecordInterval,
+                onClear = viewModel::clearHistory,
             )
         }
         item {
@@ -470,6 +483,84 @@ private fun ShizukuCard(
     }
 }
 
+/**
+ * Recording through a Shizuku daemon: it survives the app being closed, needs no foreground
+ * service and therefore no notification, and sleeps whenever the phone sleeps.
+ */
+@Composable
+private fun RecordingCard(
+    enabled: Boolean,
+    state: RecorderState,
+    intervalSeconds: Int,
+    onChange: (Boolean) -> Unit,
+    onIntervalChange: (Int) -> Unit,
+    onClear: () -> Unit,
+) {
+    val haptics = LocalHapticFeedback.current
+    SwitchCard(
+        title = stringResource(R.string.settings_recording),
+        body = stringResource(R.string.settings_recording_body),
+        enabled = enabled,
+        onChange = onChange,
+        below = {
+            if (enabled) {
+                Text(stringResource(R.string.settings_recording_interval), style = MaterialTheme.typography.titleMedium)
+                Text(
+                    stringResource(R.string.settings_recording_interval_body),
+                    style = MaterialTheme.typography.bodySmall,
+                    color = MaterialTheme.colorScheme.onSurfaceVariant,
+                )
+                val options = Settings.RECORD_INTERVALS
+                SingleChoiceSegmentedButtonRow(Modifier.fillMaxWidth()) {
+                    options.forEachIndexed { i, seconds ->
+                        SegmentedButton(
+                            selected = intervalSeconds == seconds,
+                            onClick = {
+                                haptics.performHapticFeedback(HapticFeedbackType.SegmentTick)
+                                onIntervalChange(seconds)
+                            },
+                            shape = SegmentedButtonDefaults.itemShape(i, options.size),
+                            icon = {},
+                        ) {
+                            Text(
+                                if (seconds < 60) {
+                                    stringResource(R.string.duration_seconds, seconds)
+                                } else {
+                                    stringResource(R.string.duration_minutes, seconds / 60)
+                                },
+                                maxLines = 1,
+                            )
+                        }
+                    }
+                }
+                OutlinedButton(
+                    onClick = {
+                        haptics.performHapticFeedback(HapticFeedbackType.Confirm)
+                        onClear()
+                    },
+                    modifier = Modifier.fillMaxWidth(),
+                ) {
+                    Icon(Icons.Rounded.DeleteSweep, contentDescription = null, modifier = Modifier.padding(end = 8.dp))
+                    Text(stringResource(R.string.settings_recording_clear))
+                }
+            }
+        },
+    ) {
+        if (enabled) {
+            StatusLine(
+                when (state) {
+                    is RecorderState.Running -> pluralStringResource(R.plurals.recording_running, state.samples, state.samples)
+                    RecorderState.Starting -> stringResource(R.string.recording_starting)
+                    RecorderState.NeedsShizuku -> stringResource(R.string.recording_needs_shizuku)
+                    RecorderState.Failed -> stringResource(R.string.recording_failed)
+                    RecorderState.Off -> stringResource(R.string.recording_starting)
+                },
+                isError = state == RecorderState.NeedsShizuku || state == RecorderState.Failed,
+            )
+        }
+    }
+}
+
 @Composable
 private fun LookupCard(enabled: Boolean, onChange: (Boolean) -> Unit) {
     SwitchCard(
@@ -497,6 +588,7 @@ private fun SwitchCard(
     body: String,
     enabled: Boolean,
     onChange: (Boolean) -> Unit,
+    below: @Composable ColumnScope.() -> Unit = {},
     status: @Composable ColumnScope.() -> Unit,
 ) {
     val haptics = LocalHapticFeedback.current
@@ -529,6 +621,7 @@ private fun SwitchCard(
                 colors = SwitchDefaults.colors(),
             )
         }
+        below()
     }
 }
 

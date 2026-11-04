@@ -55,9 +55,13 @@ data class Settings(
     val fahrenheit: Boolean = false,
     /** Re-alert every N minutes while still above the threshold; 0 alerts once per crossing. */
     val alertRepeatMinutes: Int = 0,
+    /** Keeps recording through a Shizuku daemon while the app is closed, without a notification. */
+    val backgroundRecording: Boolean = false,
+    val recordIntervalSeconds: Int = 60,
 ) {
     companion object {
         val REPEAT_OPTIONS = listOf(0, 2, 5, 10)
+        val RECORD_INTERVALS = listOf(30, 60, 120, 300)
         const val DEFAULT_BATTERY_THRESHOLD = 40f
         const val DEFAULT_SOC_THRESHOLD = 45f
         val BATTERY_RANGE = 30f..60f
@@ -90,6 +94,8 @@ class SettingsRepository(context: Context, scope: CoroutineScope) {
                 alertsEnabled = prefs[ALERTS_ENABLED] ?: false,
                 fahrenheit = prefs[FAHRENHEIT] ?: false,
                 alertRepeatMinutes = prefs[ALERT_REPEAT] ?: 0,
+                backgroundRecording = prefs[BACKGROUND_RECORDING] ?: false,
+                recordIntervalSeconds = prefs[RECORD_INTERVAL] ?: 60,
             )
         }
         .stateIn(scope, SharingStarted.Eagerly, Settings())
@@ -109,6 +115,10 @@ class SettingsRepository(context: Context, scope: CoroutineScope) {
     suspend fun setFahrenheit(value: Boolean) = store.edit { it[FAHRENHEIT] = value }
 
     suspend fun setAlertRepeatMinutes(value: Int) = store.edit { it[ALERT_REPEAT] = value }
+
+    suspend fun setBackgroundRecording(value: Boolean) = store.edit { it[BACKGROUND_RECORDING] = value }
+
+    suspend fun setRecordIntervalSeconds(value: Int) = store.edit { it[RECORD_INTERVAL] = value }
 
     suspend fun setLevels(levels: HeatLevels) = store.edit {
         val clean = levels.sanitized()
@@ -131,5 +141,7 @@ class SettingsRepository(context: Context, scope: CoroutineScope) {
         val ALERTS_ENABLED = booleanPreferencesKey("alerts_enabled")
         val FAHRENHEIT = booleanPreferencesKey("fahrenheit")
         val ALERT_REPEAT = intPreferencesKey("alert_repeat_minutes")
+        val BACKGROUND_RECORDING = booleanPreferencesKey("background_recording")
+        val RECORD_INTERVAL = intPreferencesKey("record_interval_seconds")
     }
 }

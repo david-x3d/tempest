@@ -23,6 +23,7 @@ import androidx.compose.material.icons.rounded.BatteryStd
 import androidx.compose.material.icons.rounded.ElectricBolt
 import androidx.compose.material.icons.rounded.Science
 import androidx.compose.material.icons.rounded.Timer
+import androidx.compose.material.icons.rounded.HourglassBottom
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.graphics.shapes.RoundedPolygon
@@ -57,6 +58,7 @@ import io.github.davidx3d.tempest.ui.components.StatTile
 import io.github.davidx3d.tempest.ui.components.TemperatureHero
 import io.github.davidx3d.tempest.ui.components.WarningBanner
 import io.github.davidx3d.tempest.ui.currentLocale
+import io.github.davidx3d.tempest.ui.duration
 import io.github.davidx3d.tempest.ui.formatNumber
 import io.github.davidx3d.tempest.ui.formatUnit
 import io.github.davidx3d.tempest.ui.plus
@@ -108,7 +110,7 @@ fun BatteryScreen(
         item { LevelCard(snapshot) }
         item { StatsGrid(snapshot) }
         state.charging?.let { details -> item { ChargingCard(details) } }
-        item { HistoryCard(state.history, state.threshold, csv = viewModel::exportCsv) }
+        item { HistoryCard(state.history, state.threshold, csv = viewModel::exportCsv, recording = state.backgroundRecording) }
     }
 }
 
@@ -147,7 +149,19 @@ private fun StatsGrid(snapshot: BatterySnapshot) {
     val locale = currentLocale()
     val unavailable = stringResource(R.string.value_unavailable)
     val stats = buildList {
-        add(Stat(stringResource(R.string.battery_voltage), snapshot.voltageVolts?.let { formatUnit(R.string.unit_volt, it, 2) } ?: unavailable, Icons.Rounded.Bolt, MaterialShapes.Cookie4Sided, 0))
+        add(
+            Stat(
+                if (snapshot.seriesCells > 1) {
+                    stringResource(R.string.battery_voltage_cells, snapshot.seriesCells)
+                } else {
+                    stringResource(R.string.battery_voltage)
+                },
+                snapshot.voltageVolts?.let {
+                    if (snapshot.voltageEstimated) formatUnit(R.string.unit_volt_approx, it, 0) else formatUnit(R.string.unit_volt, it, 2)
+                } ?: unavailable,
+                Icons.Rounded.Bolt, MaterialShapes.Cookie4Sided, 0,
+            ),
+        )
         add(
             Stat(
                 stringResource(R.string.battery_current),
@@ -155,7 +169,10 @@ private fun StatsGrid(snapshot: BatterySnapshot) {
                 Icons.Rounded.Speed, MaterialShapes.Pill, 1,
             ),
         )
-        snapshot.powerWatts?.let { add(Stat(stringResource(R.string.battery_power), formatUnit(R.string.unit_watt, it, 2), Icons.Rounded.ElectricBolt, MaterialShapes.Sunny, 2)) }
+        snapshot.powerWatts?.let {
+            val power = if (snapshot.voltageEstimated) formatUnit(R.string.unit_watt_approx, it, 1) else formatUnit(R.string.unit_watt, it, 2)
+            add(Stat(stringResource(R.string.battery_power), power, Icons.Rounded.ElectricBolt, MaterialShapes.Sunny, 2))
+        }
         snapshot.chargeCounterMah?.let {
             add(Stat(stringResource(R.string.battery_charge_counter), stringResource(R.string.unit_mah, formatNumber(it.toFloat(), locale, 0)), Icons.Rounded.BatteryStd, MaterialShapes.Cookie7Sided, 0))
         }
@@ -169,6 +186,9 @@ private fun StatsGrid(snapshot: BatterySnapshot) {
             ),
         )
         snapshot.timeToFullMillis?.let { add(Stat(stringResource(R.string.battery_time_to_full), duration(it), Icons.Rounded.Timer, MaterialShapes.Clover8Leaf, 1)) }
+        snapshot.timeToEmptyMillis?.let {
+            add(Stat(stringResource(R.string.battery_time_to_empty), stringResource(R.string.value_approx, duration(it)), Icons.Rounded.HourglassBottom, MaterialShapes.Clover8Leaf, 1))
+        }
         add(Stat(stringResource(R.string.battery_health), stringResource(snapshot.health.label()), Icons.Rounded.HealthAndSafety, MaterialShapes.Cookie12Sided, if (snapshot.health == BatteryHealth.Good) 2 else 1))
         snapshot.cycleCount?.let { add(Stat(stringResource(R.string.battery_cycles), formatNumber(it.toFloat(), locale, 0), Icons.Rounded.Autorenew, MaterialShapes.Flower, 2)) }
         snapshot.technology?.let { add(Stat(stringResource(R.string.battery_technology), it, Icons.Rounded.Science, MaterialShapes.Gem, 0)) }
@@ -222,16 +242,6 @@ private fun ChargingCard(d: ChargingDetails) {
         InfoRow(stringResource(R.string.charging_input_limit), d.inputLimitMa?.let { formatUnit(R.string.unit_milliampere, it.toFloat(), 0) })
         InfoRow(stringResource(R.string.charging_max_voltage), d.maxVoltageV?.let { formatUnit(R.string.unit_volt, it, 2) })
         InfoRow(stringResource(R.string.charging_input), d.inputWatts?.let { formatUnit(R.string.unit_watt, it, 1) })
-    }
-}
-
-@Composable
-private fun duration(millis: Long): String {
-    val minutes = (millis / 60_000).toInt()
-    return if (minutes >= 60) {
-        stringResource(R.string.duration_hours_minutes, minutes / 60, minutes % 60)
-    } else {
-        stringResource(R.string.duration_minutes, minutes)
     }
 }
 

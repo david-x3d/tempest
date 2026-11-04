@@ -32,8 +32,12 @@ Built with Jetpack Compose and Material 3 Expressive.
   wavy bar whose amplitude and wavelength follow the temperature
 - **Optional root**: with KernelSU, Magisk or any `su`, every zone is read via `su -c`;
   without root Tempest lists the zones the system lets apps read
-- **30-minute history** for battery and the hottest SoC zone, drawn as an animated sine wave
-  whose amplitude and frequency rise with the temperature
+- **History of up to 24 hours** for battery and the hottest SoC zone, drawn as an animated sine wave
+  whose amplitude and frequency rise with the temperature. Pick 30 min, 3 h, 12 h or 24 h, slide a
+  finger along the chart to read any point, and see min, average, max and time above the limit
+- **Background recording** through Shizuku: keeps the history going while Tempest is closed, with no
+  notification and no wake locks (it pauses while the phone sleeps)
+- **Runtime estimate** while discharging, and two-cell batteries are detected from their voltage
 - **More readings**: power, remaining charge, charge cycles (Android 14+), battery technology,
   time to full, plus a rising/falling trend in °C per minute
 - **More sensors**: thermal headroom forecast, CPU core clocks, cooling devices and the phone's
@@ -91,6 +95,11 @@ Minimum Android version: 12 (API 31).
 Install [Shizuku](https://shizuku.rikka.app/), start it, then turn on **Settings → Shizuku access** and
 allow Tempest in the prompt. Commands run read-only through a small Shizuku user service. Shizuku wins
 over root when both are on.
+
+**Background recording** (Settings → Background recording) starts a second, tiny Shizuku service that
+samples battery and SoC temperature every 30 s to 5 min and keeps the last 24 hours in
+`/data/local/tmp/tempest/history.csv`. Tempest merges it into the chart when you open the app. Without
+root, Shizuku stops on reboot; start it again and recording resumes.
 
 ## Root (optional)
 

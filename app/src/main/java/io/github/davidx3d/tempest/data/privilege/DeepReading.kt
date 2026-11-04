@@ -45,6 +45,24 @@ data class DeepReading(
     val supplies: List<PowerSupply> = emptyList(),
     val loaded: Boolean = false,
 ) {
+    /**
+     * The battery's exact voltage from the kernel, for phones whose broadcast only says "4 V".
+     * MediaTek phones list several "Battery" supplies; some only hold a placeholder of exactly
+     * 4.000000 V, so whole-volt values are skipped and the one named "battery" is preferred.
+     */
+    val batteryVolts: Float? by lazy {
+        supplies.filter { it.type.equals("Battery", true) }
+            .sortedByDescending { it.name == "battery" }
+            .firstNotNullOfOrNull { supply ->
+                val raw = supply.long("voltage_now")?.takeIf { it > 0 } ?: return@firstNotNullOfOrNull null
+                when {
+                    raw > 100_000 -> raw.takeIf { it % 1_000_000 != 0L }?.let { it / 1_000_000f }
+                    raw > 1_000 -> raw.takeIf { it % 1_000 != 0L }?.let { it / 1000f }
+                    else -> null
+                }
+            }
+    }
+
     val charging: ChargingDetails? by lazy {
         val battery = supplies.firstOrNull { it.type.equals("Battery", true) } ?: return@lazy null
         val charger = supplies.filter { it.type.equals("USB", true) || it.type.equals("Wireless", true) || it.type.equals("Mains", true) }
