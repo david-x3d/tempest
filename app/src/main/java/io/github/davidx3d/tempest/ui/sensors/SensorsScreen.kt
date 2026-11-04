@@ -110,7 +110,9 @@ fun SensorsScreen(
         }
         item {
             Column(Modifier.padding(bottom = 20.dp)) {
-                InstrumentGrid(state.instruments, state.available)
+                // Collected here so only the instruments recompose at sensor speed.
+                val instruments by viewModel.instruments.collectAsStateWithLifecycle()
+                InstrumentPanel(instruments, state.available)
             }
         }
         item {
@@ -180,7 +182,14 @@ fun SensorsScreen(
         }
     }
 
-    state.detail?.let { detail -> SensorSheet(detail, onDismiss = { viewModel.open(null) }) }
+    DetailHost(viewModel)
+}
+
+/** Its own scope, so live values in the sheet do not recompose the list behind it. */
+@Composable
+private fun DetailHost(viewModel: SensorsViewModel) {
+    val detail by viewModel.detail.collectAsStateWithLifecycle()
+    detail?.let { SensorSheet(it, onDismiss = { viewModel.open(null) }) }
 }
 
 /** Rows of one group read as one block: round outer corners, tight inner ones. */

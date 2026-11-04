@@ -20,7 +20,6 @@ import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.flow.flatMapLatest
 import kotlinx.coroutines.flow.flowOf
 import kotlinx.coroutines.flow.map
-import kotlinx.coroutines.flow.onStart
 import kotlinx.coroutines.flow.scan
 import kotlinx.coroutines.flow.stateIn
 
@@ -32,22 +31,19 @@ data class SensorsUiState(
     val query: String = "",
     /** Null shows every group. */
     val filter: SensorGroup? = null,
-    val instruments: Instruments = Instruments(),
     val available: InstrumentAvailability = InstrumentAvailability(),
-    val detail: SensorDetail? = null,
 ) {
-    val groups: List<SensorGroup> get() = sensors.map { it.group }.distinct().sorted()
-    val vendors: Int get() = sensors.map { it.vendor }.distinct().size
+    val groups: List<SensorGroup> = sensors.map { it.group }.distinct().sorted()
+    val vendors: Int = sensors.map { it.vendor }.distinct().size
 
-    /** Matching sensors, grouped in the order of [SensorGroup]. */
-    val visible: Map<SensorGroup, List<SensorSpec>>
-        get() {
-            val q = query.trim()
-            return sensors
-                .filter { filter == null || it.group == filter }
-                .filter { q.isEmpty() || listOf(it.name, it.vendor, it.stringType).any { field -> field.contains(q, ignoreCase = true) } }
-                .groupBy { it.group }
-        }
+    /** Matching sensors, grouped in the order of [SensorGroup]. Computed once per state. */
+    val visible: Map<SensorGroup, List<SensorSpec>> = run {
+        val q = query.trim()
+        sensors
+            .filter { filter == null || it.group == filter }
+            .filter { q.isEmpty() || listOf(it.name, it.vendor, it.stringType).any { field -> field.contains(q, ignoreCase = true) } }
+            .groupBy { it.group }
+    }
 }
 
 @OptIn(ExperimentalCoroutinesApi::class)
@@ -58,12 +54,18 @@ class SensorsViewModel(private val repository: SensorsRepository) : ViewModel() 
     private val selected = MutableStateFlow<SensorSpec?>(null)
     private val instrumentSensors = InstrumentSensors(repository)
 
-    /** Only the handful of sensors behind the instruments run while the tab is visible. */
-    private val instruments = repository.listen(instrumentSensors.ids, periodMs = 66L)
+    /**
+     * Only the handful of sensors behind the instruments run while the tab is visible. Kept apart
+     * from [uiState] so the fast updates redraw the instruments, not the whole list.
+     */
+    val instruments: StateFlow<Instruments> = repository.listen(instrumentSensors.ids, periodMs = 66L)
         .map { instrumentSensors.read(it) }
-        .onStart { emit(Instruments()) }
+        .stateIn(viewModelScope, SharingStarted.WhileSubscribed(5_000), Instruments())
 
-    private val detail = selected.flatMapLatest { spec ->
+    val available: InstrumentAvailability = instrumentSensors.available
+
+    /** The opened sensor with live values; its own flow for the same reason as [instruments]. */
+    val detail: StateFlow<SensorDetail?> = selected.flatMapLatest { spec ->
         if (spec == null) {
             flowOf(null)
         } else {
@@ -73,11 +75,11 @@ class SensorsViewModel(private val repository: SensorsRepository) : ViewModel() 
                     acc.copy(values = v, history = (acc.history + v).takeLast(HISTORY))
                 }
         }
-    }
+    }.stateIn(viewModelScope, SharingStarted.WhileSubscribed(5_000), null)
 
     val uiState: StateFlow<SensorsUiState> =
-        combine(query, filter, instruments, detail) { q, group, inst, open ->
-            SensorsUiState(repository.sensors, q, group, inst, instrumentSensors.available, open)
+        combine(query, filter) { q, group ->
+            SensorsUiState(repository.sensors, q, group, instrumentSensors.available)
         }.stateIn(viewModelScope, SharingStarted.WhileSubscribed(5_000), SensorsUiState(repository.sensors, available = instrumentSensors.available))
 
     fun setQuery(value: String) {
