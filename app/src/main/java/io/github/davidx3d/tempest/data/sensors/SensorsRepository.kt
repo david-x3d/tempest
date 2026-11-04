@@ -10,11 +10,12 @@ import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.callbackFlow
 import kotlinx.coroutines.flow.conflate
-import kotlinx.coroutines.flow.flow
 import kotlinx.coroutines.launch
 import java.util.concurrent.ConcurrentHashMap
 
 enum class SensorGroup { Motion, Position, Environment, Other }
+
+enum class ReportingMode { Continuous, OnChange, OneShot, Special }
 
 /** One hardware or virtual sensor with its datasheet values. */
 data class SensorSpec(
@@ -31,21 +32,35 @@ data class SensorSpec(
     /** Fastest rate in Hz, null for sensors that only report on change. */
     val maxRateHz: Float?,
     val version: Int,
+    val reportingMode: ReportingMode,
+    /** How many events the hardware can buffer while the phone sleeps; 0 without batching. */
+    val fifoMax: Int,
+    /** Plugged in at runtime, e.g. by a connected accessory. */
+    val dynamic: Boolean,
 )
 
 /**
- * Every sensor the phone exposes, plus live values. Values are sampled at the UI rate and pushed
- * out at most every [EMIT_MS] so a phone with 60 sensors does not flood the UI.
+ * Every sensor the phone exposes, and live values for the few a screen asks for. Only those are
+ * switched on, and only while collected, so the sensor hub can sleep again right after.
  */
 class SensorsRepository(context: Context) {
 
     private val manager = context.getSystemService(SensorManager::class.java)
+    private val hardware: Map<Int, Sensor> = manager.getSensorList(Sensor.TYPE_ALL).associateBy { it.id() }
 
-    val sensors: List<SensorSpec> = manager.getSensorList(Sensor.TYPE_ALL)
+    val sensors: List<SensorSpec> = hardware.values
         .map { it.toSpec() }
         .sortedWith(compareBy({ it.group.ordinal }, { it.type }, { it.name }))
 
-    fun values(): Flow<Map<Int, FloatArray>> = callbackFlow {
+    /** The sensor Android itself would use for [type], preferring a non-wake-up one. */
+    fun default(type: Int): SensorSpec? =
+        (manager.getDefaultSensor(type, false) ?: manager.getDefaultSensor(type))?.let { hardware[it.id()]?.toSpec() }
+
+    /**
+     * Latest values of [ids], pushed at most every [periodMs]. One-shot sensors are skipped,
+     * they cannot be listened to like this.
+     */
+    fun listen(ids: Collection<Int>, periodMs: Long = 100L): Flow<Map<Int, FloatArray>> = callbackFlow {
         val latest = ConcurrentHashMap<Int, FloatArray>()
         val listener = object : SensorEventListener {
             override fun onSensorChanged(event: SensorEvent) {
@@ -54,19 +69,17 @@ class SensorsRepository(context: Context) {
 
             override fun onAccuracyChanged(sensor: Sensor, accuracy: Int) = Unit
         }
-        manager.getSensorList(Sensor.TYPE_ALL)
-            // One-shot sensors (significant motion) cannot be listened to like this.
+        ids.mapNotNull { hardware[it] }
             .filter { it.reportingMode != Sensor.REPORTING_MODE_ONE_SHOT }
             .forEach { runCatching { manager.registerListener(listener, it, SensorManager.SENSOR_DELAY_UI) } }
-        val pump = flow {
+        val pump = launch {
             while (true) {
-                emit(HashMap(latest))
-                delay(EMIT_MS)
+                if (latest.isNotEmpty()) trySend(HashMap(latest))
+                delay(periodMs)
             }
         }
-        val job = launch { pump.collect { trySend(it) } }
         awaitClose {
-            job.cancel()
+            pump.cancel()
             manager.unregisterListener(listener)
         }
     }.conflate()
@@ -84,10 +97,21 @@ class SensorsRepository(context: Context) {
         powerMa = power,
         maxRateHz = minDelay.takeIf { it > 0 }?.let { 1_000_000f / it },
         version = version,
+        reportingMode = when (reportingMode) {
+            Sensor.REPORTING_MODE_CONTINUOUS -> ReportingMode.Continuous
+            Sensor.REPORTING_MODE_ON_CHANGE -> ReportingMode.OnChange
+            Sensor.REPORTING_MODE_ONE_SHOT -> ReportingMode.OneShot
+            else -> ReportingMode.Special
+        },
+        fifoMax = fifoMaxEventCount,
+        dynamic = isDynamicSensor,
     )
 
     /** Sensor.getId() is 0 or -1 on many phones, so identity is built from what makes it unique. */
     private fun Sensor.id(): Int = (name + vendor + type + isWakeUpSensor).hashCode()
+
+    /** Sensor.TYPE_ORIENTATION, deprecated but still listed by many phones. */
+    private val TYPE_ORIENTATION = 3
 
     private fun groupOf(type: Int): SensorGroup = when (type) {
         Sensor.TYPE_ACCELEROMETER, Sensor.TYPE_ACCELEROMETER_UNCALIBRATED, Sensor.TYPE_GYROSCOPE,
@@ -99,16 +123,12 @@ class SensorsRepository(context: Context) {
 
         Sensor.TYPE_MAGNETIC_FIELD, Sensor.TYPE_MAGNETIC_FIELD_UNCALIBRATED, Sensor.TYPE_GAME_ROTATION_VECTOR,
         Sensor.TYPE_GEOMAGNETIC_ROTATION_VECTOR, Sensor.TYPE_PROXIMITY, Sensor.TYPE_POSE_6DOF,
-        Sensor.TYPE_HINGE_ANGLE, Sensor.TYPE_HEADING,
+        Sensor.TYPE_HINGE_ANGLE, Sensor.TYPE_HEADING, TYPE_ORIENTATION,
         -> SensorGroup.Position
 
         Sensor.TYPE_AMBIENT_TEMPERATURE, Sensor.TYPE_LIGHT, Sensor.TYPE_PRESSURE, Sensor.TYPE_RELATIVE_HUMIDITY,
         -> SensorGroup.Environment
 
         else -> SensorGroup.Other
-    }
-
-    private companion object {
-        const val EMIT_MS = 250L
     }
 }

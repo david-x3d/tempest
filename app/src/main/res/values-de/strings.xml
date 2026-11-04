@@ -312,4 +312,50 @@
         <item quantity="one">Zeichnet auf · %d Messwert gespeichert</item>
         <item quantity="other">Zeichnet auf · %d Messwerte gespeichert</item>
     </plurals>
+
+    <!-- 1.4: sensors tab rework -->
+    <string name="instrument_compass">Kompass</string>
+    <string name="instrument_level">Wasserwaage</string>
+    <string name="instrument_motion">Bewegung</string>
+    <string name="level_flat">Eben</string>
+    <string name="light_dark">Dunkel</string>
+    <string name="light_dim">Gedämpft</string>
+    <string name="light_indoor">Innenraum</string>
+    <string name="light_overcast">Bewölkt</string>
+    <string name="light_daylight">Tageslicht</string>
+    <string name="light_sun">Direkte Sonne</string>
+    <string name="pressure_altitude">≈ %1$s m ü. NN</string>
+    <string name="proximity_near">Verdeckt</string>
+    <string name="proximity_far">Frei</string>
+    <string name="motion_still">Ruhig</string>
+    <string name="motion_moving">Bewegt</string>
+    <string name="motion_shaking">Starke Bewegung</string>
+    <string name="unit_g">%1$s\u00A0g</string>
+    <string name="sensors_search">Sensoren suchen</string>
+    <string name="sensors_none_found">Kein Sensor gefunden.</string>
+    <string name="sensor_reporting">Meldeart</string>
+    <string name="reporting_continuous">Fortlaufend</string>
+    <string name="reporting_one_shot">Einmalig</string>
+    <string name="reporting_special">Spezieller Auslöser</string>
+    <string name="sensor_fifo">Puffer (Batching)</string>
+    <string name="sensor_fifo_value">%1$d Ereignisse</string>
+    <string name="sensor_fifo_none">Keiner</string>
+    <string name="sensor_dynamic">Zur Laufzeit verbunden</string>
+    <string name="sensor_live">Live-Werte</string>
+    <string name="sensor_one_shot_body">Löst einmal aus und schaltet sich dann selbst ab, daher gibt es keine Live-Werte.</string>
+    <string name="sensor_wakeup_short">Wake-up</string>
+    <string-array name="compass_points">
+        <item>N</item>
+        <item>NO</item>
+        <item>O</item>
+        <item>SO</item>
+        <item>S</item>
+        <item>SW</item>
+        <item>W</item>
+        <item>NW</item>
+    </string-array>
+    <plurals name="sensors_vendor_count">
+        <item quantity="one">%d Hersteller</item>
+        <item quantity="other">%d Hersteller</item>
+    </plurals>
 </resources>

@@ -325,4 +325,50 @@
         <item quantity="one">Recording · %d reading stored</item>
         <item quantity="other">Recording · %d readings stored</item>
     </plurals>
+
+    <!-- 1.4: sensors tab rework -->
+    <string name="instrument_compass">Compass</string>
+    <string name="instrument_level">Level</string>
+    <string name="instrument_motion">Motion</string>
+    <string name="level_flat">Level</string>
+    <string name="light_dark">Dark</string>
+    <string name="light_dim">Dim</string>
+    <string name="light_indoor">Indoor</string>
+    <string name="light_overcast">Overcast</string>
+    <string name="light_daylight">Daylight</string>
+    <string name="light_sun">Direct sun</string>
+    <string name="pressure_altitude">≈ %1$s m above sea level</string>
+    <string name="proximity_near">Covered</string>
+    <string name="proximity_far">Free</string>
+    <string name="motion_still">Still</string>
+    <string name="motion_moving">Moving</string>
+    <string name="motion_shaking">Shaking</string>
+    <string name="unit_g">%1$s\u00A0g</string>
+    <string name="sensors_search">Search sensors</string>
+    <string name="sensors_none_found">No sensor matches.</string>
+    <string name="sensor_reporting">Reporting</string>
+    <string name="reporting_continuous">Continuous</string>
+    <string name="reporting_one_shot">One-shot</string>
+    <string name="reporting_special">Special trigger</string>
+    <string name="sensor_fifo">Batching buffer</string>
+    <string name="sensor_fifo_value">%1$d events</string>
+    <string name="sensor_fifo_none">None</string>
+    <string name="sensor_dynamic">Plugged in at runtime</string>
+    <string name="sensor_live">Live values</string>
+    <string name="sensor_one_shot_body">Fires once and then switches itself off, so it shows no live values.</string>
+    <string name="sensor_wakeup_short">Wake-up</string>
+    <string-array name="compass_points">
+        <item>N</item>
+        <item>NE</item>
+        <item>E</item>
+        <item>SE</item>
+        <item>S</item>
+        <item>SW</item>
+        <item>W</item>
+        <item>NW</item>
+    </string-array>
+    <plurals name="sensors_vendor_count">
+        <item quantity="one">%d vendor</item>
+        <item quantity="other">%d vendors</item>
+    </plurals>
 </resources>
