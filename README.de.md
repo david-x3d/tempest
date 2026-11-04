@@ -18,11 +18,11 @@ umso stärker schwingt, je heißer es wird. Gebaut mit Jetpack Compose und Mater
 
 ## Screenshots
 
-| Akku | Sensoren | Einstellungen |
-|:---:|:---:|:---:|
-| <img src="docs/screenshots/battery.png" width="200"> | <img src="docs/screenshots/sensors.png" width="200"> | <img src="docs/screenshots/settings.png" width="200"> |
+| Übersicht | Akku | Thermik | Chip | Einstellungen |
+|:---:|:---:|:---:|:---:|:---:|
+| <img src="docs/screenshots/overview.png" width="180" alt="Übersicht"> | <img src="docs/screenshots/battery.png" width="180" alt="Akku"> | <img src="docs/screenshots/sensors.png" width="180" alt="Thermik"> | <img src="docs/screenshots/cpu.png" width="180" alt="Chip"> | <img src="docs/screenshots/settings.png" width="180" alt="Einstellungen"> |
 
-<sub>Im Android-Emulator aufgenommen, deshalb zeigt die Thermik-Seite nur dessen einzige Zone.</sub>
+<sub>Auf einem OPPO CPH2913 aufgenommen. Die Statusleisten wurden für die Präsentation vereinheitlicht; die Messwerte der App sind unverändert.</sub>
 
 ## Funktionen
 

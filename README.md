@@ -18,11 +18,11 @@ Built with Jetpack Compose and Material 3 Expressive.
 
 ## Screenshots
 
-| Battery | Sensors | Settings |
-|:---:|:---:|:---:|
-| <img src="docs/screenshots/battery.png" width="200"> | <img src="docs/screenshots/sensors.png" width="200"> | <img src="docs/screenshots/settings.png" width="200"> |
+| Overview | Battery | Thermal | Chip | Settings |
+|:---:|:---:|:---:|:---:|:---:|
+| <img src="docs/screenshots/overview.png" width="180" alt="Overview"> | <img src="docs/screenshots/battery.png" width="180" alt="Battery"> | <img src="docs/screenshots/sensors.png" width="180" alt="Thermal"> | <img src="docs/screenshots/cpu.png" width="180" alt="Chip"> | <img src="docs/screenshots/settings.png" width="180" alt="Settings"> |
 
-<sub>Taken on the Android emulator, so the thermal page only shows the emulator's single zone.</sub>
+<sub>Captured on an OPPO CPH2913. Status bars are standardized for presentation; app readings are unchanged.</sub>
 
 ## Features
 
