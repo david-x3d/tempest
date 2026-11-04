@@ -1,130 +1,139 @@
-<p align="center">
-  <img src="branding/logo-round.svg" width="128" alt="Tempest logo">
-</p>
+<div align="center">
 
-<h1 align="center">Tempest</h1>
+<img src="branding/logo-round.svg" width="96" alt="">
 
-<p align="center">
-  A wavy, expressive thermometer for your Android phone's battery and SoC.<br>
-  <b>English</b> · <a href="README.de.md">Deutsch</a>
-</p>
+# Tempest
 
----
+**A wavy, expressive thermometer for your Android phone's battery and chip.**
 
-Tempest shows how warm your phone really is. The battery temperature sits in a morphing
-Material shape inside a wavy gauge, every thermal zone the kernel exposes gets its own wavy
-bar, and the last 30 minutes are drawn as a living wave that ripples harder the hotter it gets.
-Built with Jetpack Compose and Material 3 Expressive.
+[![Release](https://img.shields.io/github/v/release/david-x3d/tempest?label=Release&color=B3261E)](https://github.com/david-x3d/tempest/releases/latest)
+[![Android](https://img.shields.io/badge/Android-12%2B-3DDC84?logo=android&logoColor=white)](#install)
+[![Material 3 Expressive](https://img.shields.io/badge/Material%203-Expressive-7F67BE?logo=materialdesign&logoColor=white)](#how-it-works)
+[![Build](https://img.shields.io/github/actions/workflow/status/david-x3d/tempest/build.yml?branch=main&label=Build)](https://github.com/david-x3d/tempest/actions/workflows/build.yml)
+[![License](https://img.shields.io/github/license/david-x3d/tempest?label=License)](LICENSE)
 
-## Screenshots
+<b>English</b> · <a href="README.de.md">Deutsch</a>
 
-| Overview | Battery | Thermal | Chip | Settings |
-|:---:|:---:|:---:|:---:|:---:|
-| <img src="docs/screenshots/overview.png" width="180" alt="Overview"> | <img src="docs/screenshots/battery.png" width="180" alt="Battery"> | <img src="docs/screenshots/sensors.png" width="180" alt="Thermal"> | <img src="docs/screenshots/cpu.png" width="180" alt="Chip"> | <img src="docs/screenshots/settings.png" width="180" alt="Settings"> |
+<br>
+
+<img src="docs/screenshots/overview.png" width="150" alt="Overview">&nbsp;
+<img src="docs/screenshots/battery.png" width="150" alt="Battery">&nbsp;
+<img src="docs/screenshots/sensors.png" width="150" alt="Thermal">&nbsp;
+<img src="docs/screenshots/cpu.png" width="150" alt="Chip">&nbsp;
+<img src="docs/screenshots/settings.png" width="150" alt="Settings">
 
 <sub>Captured on an OPPO CPH2913. Status bars are standardized for presentation; app readings are unchanged.</sub>
 
-## Features
+</div>
 
-- **Overview dashboard** with battery and SoC temperatures, history and quick access to sensors
-- **Redesigned chip dashboard** with selectable CPU cores, live GPU/RAM readings and expandable hardware details
-- **Personal settings** for the start tab, light/dark/system appearance, dynamic colour, waves, motion and haptics
-- **SoC temperature profiles** for everyday use, active use, gaming and custom limits, with an adjustable normal temperature under load; these are tuning presets, not manufacturer-certified limits
+Most temperature apps show you a number. Tempest shows you how the heat *feels*: the temperature sits in a morphing Material shape inside a wavy gauge, every thermal zone gets its own wavy bar, and the history is drawn as a living wave that ripples harder the hotter your phone gets. No root needed, no ads, nothing leaves your device.
 
-- **Live battery temperature** from `ACTION_BATTERY_CHANGED`, plus voltage, current,
-  charge level, charging state, power source and health
-- **Thermal zones** from `/sys/class/thermal/thermal_zone*`, sorted hottest first, each with a
-  wavy bar whose amplitude and wavelength follow the temperature
-- **Optional root**: with KernelSU, Magisk or any `su`, every zone is read via `su -c`;
-  without root Tempest lists the zones the system lets apps read
-- **History of up to 24 hours** for battery and the hottest SoC zone, drawn as an animated sine wave
-  whose amplitude and frequency rise with the temperature. Pick 30 min, 3 h, 12 h or 24 h, slide a
-  finger along the chart to read any point, and see min, average, max and time above the limit
-- **Background recording** through Shizuku: keeps the history going while Tempest is closed, with no
-  notification and no wake locks (it pauses while the phone sleeps)
-- **Runtime estimate** while discharging, and two-cell batteries are detected from their voltage
-- **More readings**: power, remaining charge, charge cycles (Android 14+), battery technology,
-  time to full, plus a rising/falling trend in °C per minute
-- **More sensors**: thermal headroom forecast, CPU core clocks, cooling devices and the phone's
-  environment sensors (ambient temperature, humidity, air pressure, light)
-- **Your own heat levels**: decide what counts as cold, cool, warm, hot and ultra hot; colours,
-  shapes and waves follow them
-- **Warning thresholds** you can adjust (defaults: 40 °C battery, 60 °C SoC with the balanced profile) with a banner and
-  haptic feedback when they are crossed
-- **Big background alerts**: optional monitoring that posts a heads-up notification with the
-  temperature in huge type and, if allowed, a full-screen alert over the lock screen
-- **CPU tab** in the spirit of CPU-Z: chip name with a flat emblem per maker (Snapdragon,
-  Dimensity, Exynos, Tensor, Kirin, Unisoc), live clock of every core, clusters with core types
-  (Cortex-X4, Cortex-A720 …), governor, GPU renderer with OpenGL ES and Vulkan versions, GPU load
-  and clock where the driver allows it, RAM, swap, storage, display and system details
-- **Sensors tab**: every sensor the phone has, with live values, a short live graph, filters
-  (motion, position, environment) and the full datasheet on tap
-- **Alert extras**: a test alert, reminders every 2, 5 or 10 minutes while it stays hot, and
-  presets (default, gaming, careful) for the heat levels
-- **Quick Settings tile**, **°C or °F**, and **CSV export** of the history
-- **Material 3 Expressive**: `MaterialShapes` with shape morphing (Cookie, Sunny, Pill, Burst),
-  `CircularWavyProgressIndicator` and `LinearWavyProgressIndicator`, `MotionScheme.expressive()`
-  springs, variable Roboto Flex type that gets heavier as it heats up, cool-blue to hot-red
-  colour scale, dynamic colour, dark theme, edge-to-edge
-- **Shizuku support**: no root needed. Through Shizuku Tempest also reads CPU and GPU load, the thermal
-  HAL's named sensors (skin, modem, NPU …), hwmon chips, charger temperatures, battery capacity
-  health and charge limits
-- **Chip names**: a large built-in list (including the Dimensity 9600 Pro, `MT6995`) plus an optional
-  lookup on Wikipedia for chips it does not know (MediaTek and Qualcomm)
-- **Private by design**: nothing about your device ever leaves it. The internet permission is only used
-  by the optional, off-by-default chip lookup, which downloads a public chip list and matches it locally
+## At a glance
+
+| | What you get |
+|---|---|
+| **Overview** | Battery and hottest SoC zone side by side, with heat level, trend in °C/min, charge and history |
+| **Battery** | Temperature, voltage, current, power, charge cycles, health, time to full or runtime left |
+| **Thermal** | Every thermal zone the kernel exposes, hottest first, plus cooling devices and thermal headroom |
+| **CPU** | Chip name with maker emblem, live clock per core, clusters and core types, GPU, RAM, storage, display |
+| **Sensors** | Every sensor the phone has, with live values, a mini graph and the full datasheet on tap |
+| **History** | Up to 24 hours as an animated wave – scrub along it to read any point, see min / avg / max |
+| **Alerts** | Heads-up notification in huge type, optional full-screen alarm on the lock screen, Quick Settings tile |
+
+## More access, more readings
+
+Tempest works out of the box. If you have [Shizuku](https://shizuku.rikka.app/) or root, it can see further.
+
+| | Without | With Shizuku | With root |
+|---|:---:|:---:|:---:|
+| Battery temperature and stats | ✓ | ✓ | ✓ |
+| Thermal zones apps may read | ✓ | ✓ | ✓ |
+| **All** thermal zones | | ✓ | ✓ |
+| CPU and GPU load | | ✓ | ✓ |
+| Thermal HAL sensors (skin, modem, NPU …), hwmon, charger temps | | ✓ | ✓ |
+| Battery capacity health and charge limits | | ✓ | ✓ |
+| History while the app is closed | | ✓ | |
+
+Everything Tempest runs is read-only. Shizuku wins over root when both are on.
+
+## Install
+
+Download `Tempest-….apk` from the [latest release](https://github.com/david-x3d/tempest/releases/latest) and open it on your phone. Android 12 or newer.
+
+Releases are signed with the same key, so new versions install over the old one. Every push to `main` also builds a debug APK – grab it from the run's **Artifacts** on [GitHub Actions](https://github.com/david-x3d/tempest/actions/workflows/build.yml).
+
+<details>
+<summary><b>Setting up Shizuku</b></summary>
+
+1. Install and start [Shizuku](https://shizuku.rikka.app/).
+2. In Tempest, turn on **Settings → Shizuku access** and allow it in the prompt.
+
+**Background recording** (Settings → Background recording) starts a second, tiny Shizuku service that samples battery and SoC temperature every 30 s to 5 min and keeps the last 24 hours in `/data/local/tmp/tempest/history.csv`. Tempest merges it into the chart when you open the app. No notification, no wake locks – it pauses while the phone sleeps. Without root, Shizuku stops on reboot; start it again and recording resumes.
+
+</details>
+
+<details>
+<summary><b>Using root</b></summary>
+
+Root is never required. Turn on **Settings → Root access** and approve the prompt from KernelSU, Magisk or your `su`. Tempest then runs one read-only shell loop per refresh (`cat /sys/class/thermal/thermal_zone*/type` and `.../temp`) and nothing else. If root is denied, it falls back to the zones it can read without it.
+
+</details>
+
+## Make it yours
+
+**SoC profiles** decide when the chip counts as hot. They are tuning presets, not manufacturer-certified limits; battery limits stay separate (default: hot from 40 °C).
+
+| Profile | For | Hot from |
+|---|---|:---:|
+| **Everyday** | Daily use | 60 °C |
+| **Active use** | Heavy apps, navigation, camera | normal under load + 20 °C |
+| **Gaming** | Long gaming sessions | normal under load + 25 °C |
+| **Custom** | Your own limit | you choose |
+
+"Normal under load" is adjustable (default 45 °C).
+
+You can also:
+
+- define your own **cold, cool, warm, hot and ultra hot** levels – colours, shapes and waves follow them – or start from a preset (default, gaming, careful)
+- set **alert thresholds**, a test alert and **reminders** every 2, 5 or 10 minutes while it stays hot
+- pick the **start tab**, **light / dark / system**, **dynamic colour**, and switch **waves, motion and haptics** on or off
+- show **°C or °F** and **export the history as CSV**
+
+## How it works
+
+- **Material 3 Expressive throughout.** `MaterialShapes` morph between Cookie, Sunny, Pill and Burst as it heats up, `CircularWavyProgressIndicator` and `LinearWavyProgressIndicator` carry the readings, and `MotionScheme.expressive()` springs drive the motion.
+- **Heat you can see.** A cool-blue to hot-red colour scale, waves whose amplitude and wavelength follow the temperature, and variable Roboto Flex type that gets heavier the hotter it gets.
+- **Straight from the source.** Battery data comes from `ACTION_BATTERY_CHANGED`, zones from `/sys/class/thermal/thermal_zone*`, sensors from Android's `SensorManager`. Two-cell batteries are detected from their voltage.
+- **Knows your chip.** A large built-in list maps model numbers to names (Snapdragon, Dimensity, Exynos, Tensor, Kirin, Unisoc – down to the Dimensity 9600 Pro, `MT6995`). For unknown chips there is an optional Wikipedia lookup.
+
+## Privacy
+
+Nothing about your device ever leaves it – no telemetry, no ads, no accounts. The internet permission is only used by the optional chip lookup, which is **off by default** and downloads a public chip list to match it locally.
 
 ## Languages
 
-English (default), German, French and Italian. Tempest follows the system language. You can
-pick another one in the app's settings or in Android's per-app language menu
-(Android 13 and later).
+English, German, French and Italian. Tempest follows the system language; pick another one in the app's settings or in Android's per-app language menu (Android 13+).
 
-## Build
+## Development
 
 Requirements: JDK 17 and the Android SDK (compile SDK 37).
 
 ```bash
 git clone https://github.com/david-x3d/tempest.git
 cd tempest
-./gradlew assembleDebug
+./gradlew assembleDebug        # APK in app/build/outputs/apk/debug/
+./gradlew testDebugUnitTest    # unit tests
 ```
 
-The APK ends up in `app/build/outputs/apk/debug/`. Every push to `main` also builds it on
-GitHub Actions. Download it from the run's **Artifacts** section.
-
-Minimum Android version: 12 (API 31).
-
-## Shizuku (optional)
-
-Install [Shizuku](https://shizuku.rikka.app/), start it, then turn on **Settings → Shizuku access** and
-allow Tempest in the prompt. Commands run read-only through a small Shizuku user service. Shizuku wins
-over root when both are on.
-
-**Background recording** (Settings → Background recording) starts a second, tiny Shizuku service that
-samples battery and SoC temperature every 30 s to 5 min and keeps the last 24 hours in
-`/data/local/tmp/tempest/history.csv`. Tempest merges it into the chart when you open the app. Without
-root, Shizuku stops on reboot; start it again and recording resumes.
-
-## Root (optional)
-
-Root is never required. Turn on **Settings → Root access** and approve the prompt from your
-root manager. Tempest then runs one read-only shell loop per refresh
-(`cat /sys/class/thermal/thermal_zone*/type` and `.../temp`) and nothing else. If root is
-denied, Tempest falls back to the zones it can read without it.
-
-## Architecture
-
-MVVM with Kotlin coroutines: repositories expose `StateFlow`s (battery, thermal zones,
-settings in DataStore, in-memory history), one `ViewModel` per screen combines them into a UI
-state, and Compose renders it.
+MVVM with Kotlin coroutines: repositories expose `StateFlow`s, one `ViewModel` per screen combines them into UI state, and Compose renders it.
 
 ```
-data/      battery · thermal (incl. RootShell) · device · sensors · history · settings
-ui/        battery · thermal · cpu · sensors · settings · components · theme
+data/       battery · thermal · device · sensors · history · settings · privilege (Shizuku, root)
+alerts/     background monitor, notifications, full-screen alert, Quick Settings tile
+ui/         overview · battery · thermal · cpu · sensors · settings · components · theme
+branding/   logo sources and icon generator
 ```
 
 ## License
 
-[MIT](LICENSE). The bundled Roboto Flex font is licensed under the
-[SIL Open Font License 1.1](third_party/roboto-flex/OFL.txt).
+[MIT](LICENSE). The bundled Roboto Flex font is licensed under the [SIL Open Font License 1.1](third_party/roboto-flex/OFL.txt).
